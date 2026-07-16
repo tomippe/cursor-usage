@@ -454,7 +454,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.command = OPEN_DASHBOARD_COMMAND;
-  statusBarItem.text = `$(loading~spin) ${t(Msg.usage)}`;
+  statusBarItem.text = `$(loading~spin) ${t(Msg.cursorUsage)}`;
   statusBarItem.show();
 
   const showDetailsCmd = vscode.commands.registerCommand("cursor-usage.showDetails", showDetails);
