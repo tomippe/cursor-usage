@@ -18,6 +18,7 @@ Ultra / Pro の消化率とオンデマンドをひと目で
 - **app-ss01**: 2407
 - **app-ss01width**: 880
 - **app-ss01radius**: true（角丸 12px）
+- **拡張詳細 README**: 同上スクショの絶対 URL（`tomippe.jp/wp-content/uploads/...`）。相対パスは vsce が GitHub raw に書き換えて未 push 時に切れるため使わない
 
 ## KV背景・キー色
 

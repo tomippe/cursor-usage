@@ -1,229 +1,132 @@
-# Changelog
+**Language / 言語 / 语言:** [English](#changelog-en) · [日本語](#changelog-ja) · [中文](#changelog-zh)
 
-All notable changes to this project are documented in this file.
+Cursor Usage by tomippe — fork of [wrick17/cursor-metrics](https://github.com/wrick17/cursor-metrics).
 
-## [0.5.18] - 2026-05-07
+---
 
-### Added
-- Added `cursorUsage.quotaAwareEventDisplay` to control whether dashboard events show included usage as requests and on-demand usage as spend.
+<a id="changelog-en"></a>
 
-### Fixed
-- Dashboard events, chart spend, model breakdown spend, and CSV export now treat included premium-request usage as request quota usage by default instead of on-demand spend.
+## English
 
-## [0.5.15] - 2026-05-07
+### [1.0.4] - 2026-07-16
 
-### Added
-- Dashboard sections (Your Usage, Usage by Model, Events) are now collapsible. Section state is persisted across reloads.
-- Dark mode support for the dashboard's filter dropdowns (Usage, Metric, sort selectors) so they match the rest of the themed UI in dark VS Code themes.
+#### Changed
+- Loading status bar label now shows “Cursor Usage” (localized)
 
-### Changed
-- Replaced the unicode collapse glyphs with a 16×16 SVG chevron that uses `currentColor` and rotates 90° when a section is collapsed. Toggle hitbox enlarged from 14×14 to 20×20 for easier clicking.
+### [1.0.3] - 2026-07-16
 
-## [0.5.12] - 2026-05-07
+#### Added
+- Japanese, English, and Simplified Chinese UI (status bar, tooltip, dashboard, settings)
+- README with in-page language sections
 
-### Fixed
-- Read Cursor auth tokens directly from `state.vscdb` without requiring a `sqlite3` CLI on PATH, native SQLite bindings, or platform-specific binaries.
-- Support Cursor databases using WAL mode so freshly written auth values are visible.
-- Avoid loading multi-GB Cursor databases into memory by traversing the SQLite table B-tree and reading only the auth rows needed.
-- Harden dashboard CSV export against spreadsheet formula injection.
-- Escape model names in trusted tooltip HTML and restrict trusted Markdown commands to known extension commands.
-- Add request timeouts and a pagination cap for Cursor API fetches so refreshes cannot hang indefinitely.
+#### Changed
+- Japanese labels: included plan usage / first-party models / on-demand / included
+- Half-width “リクエスト” only in the tooltip table header to avoid wrapping
 
-## [0.5.11] - 2026-04-29
+### [1.0.2] - 2026-07-16
 
-### Fixed
-- Dashboard chart axis labels, gridlines, and legend text are now visible in light themes. VS Code webviews don't honor `prefers-color-scheme`, so light tokens are now applied via the `body.vscode-light` / `body.vscode-high-contrast-light` selectors that VS Code sets on the webview body.
-- Chart tooltip uses themed surface, border, and foreground tokens instead of hardcoded dark colors so it remains readable in light themes.
+#### Fixed
+- Spend-based plans (e.g. Ultra) no longer show `0/0 Included-Request` on the dashboard summary cards
 
-## [0.5.10] - 2026-04-29
+#### Changed
+- Open VSX republish uses `--skip-duplicate`
 
-### Changed
-- README now includes a screenshot of the in-editor dashboard alongside the existing tooltip screenshot, and lists the new `Cursor Usage: Open Dashboard` command.
+### [1.0.1] - 2026-07-16
 
-## [0.5.7] - 2026-04-29
+#### Changed
+- Status bar tooltip overview laid out as a 2×2 grid
 
-### Added
-- Dashboard now has a `Usage by Model` section between the chart and the events table, with sortable Model / Requests / Tokens / Spend columns. Each row reuses the chart's color tinting so it visually maps to the chart series.
-- Chart tooltip is now a real HTML table with a header row, a colored model dot, and a per-row Spend column when viewing Tokens or Requests.
+#### Added
+- Open VSX build pipeline and apps.tomippe.jp listing integration
 
-### Changed
-- Constrained dashboard content to a 1000px max width for readability on wide monitors.
-- Centered the chart legend.
-- When the `Current Billing Cycle` range is selected, the chart's x-axis now extends through the last day of the cycle so the full span is visible even before later days have data.
-- Y-axis tick labels drop the trailing `.0` (`60M` instead of `60.0M`).
-- Events table rows are tinted with the model color and gain a 3px left accent border, replacing the previous inline dot.
-- Refined the `MAX` badge to match Cursor's gradient text treatment (purple → pink → peach).
+### [1.0.0] - 2026-07-16
 
-## [0.5.2] - 2026-04-29
+#### Added
+- First tomippe fork release on Open VSX / listing page
+- Status bar, tooltip, and dashboard from upstream
 
-### Added
-- Dashboard events table now shows a per-event Spend column (sortable, in USD).
-- Chart tooltip now appends each model's spend on that day alongside the selected metric value when viewing Tokens or Requests.
+---
 
-## [0.5.1] - 2026-04-29
+<a id="changelog-ja"></a>
 
-### Fixed
-- VS Marketplace package now includes the `media/` directory so the dashboard webview's CSS, JavaScript, and bundled Chart.js load correctly. Previous 0.5.0 build shipped only `dist/` and `test/`, leaving the dashboard unstyled and non-interactive on VSCode.
+## 日本語
 
-## [0.5.0] - 2026-04-29
+### [1.0.4] - 2026-07-16
 
-### Added
-- New `cursor-usage.openDashboard` command opens a full Cursor Usage dashboard in a VSCode editor tab.
-- Dashboard renders Included-Request and On-Demand summary cards, a stacked bar chart of per-day usage, and a sortable Events table with Export CSV.
-- Range tabs (Last 24 hours / Last 7 days / Last 30 days / Current Billing Cycle) match the `cursorUsage.usageDuration` setting labels.
-- Chart filters for Usage (All / Included / On-Demand) and Metric (Spend / Tokens / Requests); per-event spend now derives from `chargedCents` so Spend works for solo and team accounts.
-- Events table shows `MAX` mode badges and a colored model dot that matches the chart palette.
+#### Changed
+- 読み込み中のステータスバー表示を「Cursor使用量」に変更
 
-### Changed
-- Status-bar click now opens the new dashboard instead of the inline message dialog.
-- Tooltip "Open Dashboard" link and the no-data warning's "Open Dashboard" action now route to the new in-VSCode dashboard.
-- Dashboard polling reuses the existing `cursorUsage.pollInterval` cadence; the dashboard auto-updates whenever the host fetches new data.
-- Usage events now parse `requestsCosts` (fractional) and string timestamps from the Cursor API; popup table rounds requests to integers.
-- Theme refresh: shadcn-style dark surface, soft pastel chart palette, rounded top corners on the topmost stack segment.
+### [1.0.3] - 2026-07-16
 
-## [0.4.11] - 2026-04-23
+#### Added
+- 日本語・英語・簡体中国語の多言語対応（ステータスバー、ツールチップ、ダッシュボード、設定項目）
+- README に日中英の説明を同一ファイル内のアンカーで掲載
 
-### Added
-- Added `cursorUsage.excludeZeroTokenModels` to hide usage-by-model rows where token usage is zero.
+#### Changed
+- 日本語の用語を整理（定額分 / 純正モデル / 追加従量分 / 定額内）
+- ツールチップ表ヘッダの「リクエスト」のみ半角にして改行を防止
 
-### Changed
-- Updated tooltip rendering to apply zero-token model filtering when the setting is enabled.
-- Added tests covering filter behavior and configuration exposure.
+### [1.0.2] - 2026-07-16
 
-## [0.4.10] - 2026-04-23
+#### Fixed
+- Spend プラン（Ultra 等）のダッシュボード概要カードが `0/0 Included-Request` にならないよう、プラン種別に応じて分岐
 
-### Added
-- Added `cursorUsage.modelBreakdownSortBy` to choose the usage-by-model table sort column (`Model`, `Requests`, `Tokens`, `Spend`).
-- Added `cursorUsage.modelBreakdownSortOrder` to choose ascending or descending table order.
+#### Changed
+- Open VSX 再公開時に `--skip-duplicate` を付与
 
-### Changed
-- Updated usage-by-model aggregation to apply configured column/direction sorting, defaulting to `Tokens` descending.
-- Added test coverage for new sort settings and ordering behavior.
+### [1.0.1] - 2026-07-16
 
-## [0.4.9] - 2026-04-21
+#### Changed
+- ステータスバーツールチップの概要を縦並びから 2×2 グリッド配置に変更
 
-### Changed
-- Simplified and decluttered the README for extension marketplace readability.
-- Added a screenshot preview near the top of the README so the extension page shows the UI tooltip.
-- Removed publishing and release-process documentation from the README.
+#### Added
+- Open VSX 向けビルド・紹介ページ連携（`build.sh` / manifest / バージョン履歴）
 
-## [0.4.8] - 2026-04-20
+### [1.0.0] - 2026-07-16
 
-### Changed
-- Added separate Open VSX and Visual Studio Marketplace packaging flows, including a Marketplace-specific package id of `cursor-usage-auto`.
-- Documented the `wrick17` publisher setup, token requirements, and release commands for both marketplaces.
-- Excluded generated build assets and helper scripts from packaged VSIX artifacts and local Bun test discovery.
+#### Added
+- tomippe フォークとして Open VSX / 紹介ページ向けに公開開始
+- 元プロジェクトの機能を引き継ぎ（ステータスバー、ツールチップ、ダッシュボード）
 
-## [0.4.7] - 2026-04-20
+---
 
-### Changed
-- Moved usage-duration selection back into `cursorUsage.usageDuration` in Settings and made `Current Billing Cycle` the default.
-- Restored the tooltip `Change` action and routed it to the `cursorUsage.usageDuration` setting.
-- Added a friendly `Current Billing Cycle` label in the settings dropdown while still falling back to `30d` when billing reset metadata is unavailable.
+<a id="changelog-zh"></a>
 
-## [0.4.6] - 2026-04-20
+## 中文
 
-### Changed
-- Backfilled changelog entries for every release from `0.1.0` through `0.4.5`.
-- Added the missing `0.4.4` changelog entry based on git history.
+### [1.0.4] - 2026-07-16
 
-## [0.4.5] - 2026-04-20
+#### Changed
+- 加载中的状态栏文案改为「Cursor使用量」（按界面语言本地化）
 
-### Added
-- Added a `Current Billing Cycle` range option in the tooltip range picker when reset metadata is available.
-- Added duration option helpers and tests covering picker visibility and fallback behavior.
+### [1.0.3] - 2026-07-16
 
-### Changed
-- Switched range selection from settings navigation to an in-tooltip QuickPick command.
-- Persisted selected range in extension global state while still seeding from the legacy `cursorUsage.usageDuration` setting.
-- Updated usage aggregation to support billing-cycle cutoffs derived from `resetsAt`.
-- Expanded usage event and daily spend fetch windows from 30 to 31 days to cover longer billing cycles.
-- Updated README to describe the new picker flow and legacy-setting migration behavior.
+#### Added
+- 日语、英语、简体中文界面（状态栏、工具提示、仪表盘、设置项）
+- README 在同一文件内用锚点切换三种语言说明
 
-## [0.4.4] - 2026-04-20
+#### Changed
+- 日语术语：定额用量 / 原厂模型 / 按需追加 / 定额内
+- 仅在工具提示表头使用半角「リクエスト」，避免换行
 
-### Added
-- Added a per-model spend breakdown to the tooltip.
+### [1.0.2] - 2026-07-16
 
-## [0.4.3] - 2026-04-15
+#### Fixed
+- 按支出计费的套餐（如 Ultra）仪表盘摘要卡不再显示 `0/0 Included-Request`
 
-### Added
-- Added limited on-demand spend cap details to the tooltip.
+#### Changed
+- Open VSX 重新发布时使用 `--skip-duplicate`
 
-## [0.4.2] - 2026-03-26
+### [1.0.1] - 2026-07-16
 
-### Changed
-- Polished the usage tooltip layout.
+#### Changed
+- 状态栏工具提示概览改为 2×2 网格布局
 
-## [0.4.1] - 2026-03-16
+#### Added
+- Open VSX 构建流程与 apps.tomippe.jp 介绍页联动
 
-### Changed
-- Aligned dashboard usage mapping with tooltip totals and unlimited spend display.
-- Routed packaged VSIX artifacts to the `build/` directory for packaging and release workflows.
+### [1.0.0] - 2026-07-16
 
-## [0.4.0] - 2026-02-26
-
-### Added
-- Added a per-model usage breakdown in the tooltip.
-- Added a `cursorUsage.usageDuration` setting to control the usage breakdown time range.
-
-### Changed
-- Reworked the tooltip into a side-by-side layout for usage details.
-
-## [0.3.3] - 2026-02-26
-
-### Changed
-- Made progress bars theme-aware for light and dark modes.
-
-## [0.3.2] - 2026-02-25
-
-### Added
-- Added an extension icon.
-
-## [0.3.1] - 2026-02-25
-
-### Changed
-- Updated README to reflect the current feature set, settings, and smart polling behavior.
-
-## [0.3.0] - 2026-02-25
-
-### Added
-- Added SVG progress bars in the tooltip.
-- Added a loading spinner and reset countdown state.
-
-### Changed
-- Introduced smart polling behavior for usage refreshes.
-
-## [0.2.1] - 2026-02-25
-
-### Changed
-- Reduced API calls by caching setup data and reading the account email from the local database.
-
-## [0.2.0] - 2026-02-25
-
-### Added
-- Added `cursorUsage.pollInterval` configuration for refresh cadence.
-- Added `cursorUsage.minimalMode` configuration for a simplified status bar display.
-
-### Changed
-- Refined the status bar to adapt to the new polling and minimal-display preferences.
-
-## [0.1.1] - 2026-02-25
-
-### Added
-- Added dashboard and manual refresh actions to the extension tooltip.
-
-### Changed
-- Updated package metadata with the new publisher, license, and repository details.
-- Reworked the release script to package the extension and publish using the current version from `package.json`.
-- Revised README installation and usage guidance.
-
-## [0.1.0] - 2026-02-25
-
-### Added
-- Initial release of the extension.
-- Added the renamed `cursor-usage` project structure and extension scaffolding.
-
-### Changed
-- Refactored the project layout, build pipeline, and ignore files for extension development.
-- Updated scripts and execution permissions to support the renamed project.
+#### Added
+- tomippe 分支首次在 Open VSX / 介绍页发布
+- 承接上游的状态栏、工具提示与仪表盘功能

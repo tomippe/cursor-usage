@@ -1,6 +1,6 @@
 {
   "name": "cursor-usage",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "l10n": "./l10n",
   "repository": {
     "type": "git",
@@ -144,6 +144,6 @@
     "publish:ovsx": "./scripts/publish-ovsx.sh",
     "publish:vsm": "npm run package:vsm && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce publish --packagePath \"build/cursor-usage-tomippe-${VERSION}.vsix\" -p \"$VSCE_PAT\""
   },
-  "homepage": "https://open-vsx.org/extension/tomippe/cursor-usage",
+  "homepage": "https://apps.tomippe.jp/cursor-usage/",
   "bugs": "https://github.com/tomippe/cursor-usage/issues"
 }
