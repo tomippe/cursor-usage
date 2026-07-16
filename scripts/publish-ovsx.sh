@@ -47,5 +47,6 @@ echo "Ensuring namespace: $PUBLISHER"
 npx --yes ovsx create-namespace "$PUBLISHER" -p "$OPEN_VSX_TOKEN" || true
 
 echo "Publishing $VSIX ..."
-npx --yes ovsx publish "$VSIX" -p "$OPEN_VSX_TOKEN"
+# 同版の再実行でもビルド全体を落とさない（活性化待ち・再試行向け）
+npx --yes ovsx publish "$VSIX" -p "$OPEN_VSX_TOKEN" --skip-duplicate
 echo "Done: https://open-vsx.org/extension/${PUBLISHER}/${NAME}"

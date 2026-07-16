@@ -194,45 +194,94 @@
     });
   }
 
+  function formatPlanPercent(percent) {
+    const n = Number(percent) || 0;
+    const rounded = Math.round(n);
+    if (Math.abs(n - rounded) < 0.05) return rounded + "%";
+    return n.toFixed(1) + "%";
+  }
+
+  function percentBarWidth(percent) {
+    return Math.round(Math.min(1, Math.max(0, (Number(percent) || 0) / 100)) * 100);
+  }
+
+  function summaryCardHtml(label, value, barPct, footer) {
+    return (
+      '<div class="card">' +
+        '<div class="card-label">' + label + "</div>" +
+        '<div class="card-value">' + value + "</div>" +
+        '<div class="progress"><div style="width:' + barPct + '%"></div></div>' +
+        (footer ? '<div class="card-footer">' + footer + "</div>" : "") +
+      "</div>"
+    );
+  }
+
+  function renderOnDemandCard(onDemand) {
+    if (onDemand.state === "disabled") return "";
+    let valText, footerText, ratio;
+    if (onDemand.state === "unlimited") {
+      valText = formatDollars(onDemand.spendDollars);
+      footerText = "Unlimited";
+      ratio = 0;
+    } else {
+      valText = formatDollars(onDemand.spendDollars) + " / " + formatDollars(onDemand.limitDollars || 0);
+      ratio = onDemand.limitDollars > 0 ? Math.min(1, onDemand.spendDollars / onDemand.limitDollars) : 0;
+      footerText = "Pay for extra usage beyond your plan limits";
+    }
+    return summaryCardHtml("On-Demand Usage", valText, Math.round(ratio * 100), footerText);
+  }
+
   function renderSummaryCards() {
     if (!state || !state.data) {
       ui.summaryCards.innerHTML = '<div class="card"><div class="card-label">No data yet</div></div>';
       return;
     }
-    const { includedRequests, onDemand } = state.data;
-    const reqRatio = includedRequests.limit > 0 ? Math.min(1, includedRequests.used / includedRequests.limit) : 0;
-    const reqPct = Math.round(reqRatio * 100);
-
+    const { includedRequests, onDemand, totalPercentUsed, autoPercentUsed, apiPercentUsed } = state.data;
     const parts = [];
-    parts.push(
-      '<div class="card">' +
-        '<div class="card-label">Included-Request Usage</div>' +
-        '<div class="card-value">' + includedRequests.used + " / " + includedRequests.limit + "</div>" +
-        '<div class="progress"><div style="width:' + (reqPct) + '%"></div></div>' +
-        '<div class="card-footer">' + formatResetCountdown(state.resetsAt) + "</div>" +
-      "</div>"
-    );
 
-    if (onDemand.state !== "disabled") {
-      let valText, footerText, ratio;
-      if (onDemand.state === "unlimited") {
-        valText = formatDollars(onDemand.spendDollars);
-        footerText = "Unlimited";
-        ratio = 0;
-      } else {
-        valText = formatDollars(onDemand.spendDollars) + " / " + formatDollars(onDemand.limitDollars || 0);
-        ratio = onDemand.limitDollars > 0 ? Math.min(1, onDemand.spendDollars / onDemand.limitDollars) : 0;
-        footerText = "Pay for extra usage beyond your plan limits";
-      }
+    // Spend-based plans (Ultra / Pro): Total / First-party / API — same branch as status-bar tooltip
+    if (totalPercentUsed !== null && totalPercentUsed !== undefined) {
       parts.push(
-        '<div class="card">' +
-          '<div class="card-label">On-Demand Usage</div>' +
-          '<div class="card-value">' + valText + "</div>" +
-          '<div class="progress"><div style="width:' + Math.round(ratio * 100) + '%"></div></div>' +
-          '<div class="card-footer">' + footerText + "</div>" +
-        "</div>"
+        summaryCardHtml(
+          "Total",
+          formatPlanPercent(totalPercentUsed),
+          percentBarWidth(totalPercentUsed),
+          formatResetCountdown(state.resetsAt),
+        ),
       );
+      if (autoPercentUsed !== null && autoPercentUsed !== undefined) {
+        parts.push(
+          summaryCardHtml(
+            "First-party models",
+            formatPlanPercent(autoPercentUsed),
+            percentBarWidth(autoPercentUsed),
+            "",
+          ),
+        );
+      }
+      if (apiPercentUsed !== null && apiPercentUsed !== undefined) {
+        parts.push(
+          summaryCardHtml("API", formatPlanPercent(apiPercentUsed), percentBarWidth(apiPercentUsed), ""),
+        );
+      }
+      const onDemandCard = renderOnDemandCard(onDemand);
+      if (onDemandCard) parts.push(onDemandCard);
+      ui.summaryCards.innerHTML = parts.join("");
+      return;
     }
+
+    // Legacy request-quota plans
+    const reqRatio = includedRequests.limit > 0 ? Math.min(1, includedRequests.used / includedRequests.limit) : 0;
+    parts.push(
+      summaryCardHtml(
+        "Included-Request Usage",
+        includedRequests.used + " / " + includedRequests.limit,
+        Math.round(reqRatio * 100),
+        formatResetCountdown(state.resetsAt),
+      ),
+    );
+    const onDemandCard = renderOnDemandCard(onDemand);
+    if (onDemandCard) parts.push(onDemandCard);
     ui.summaryCards.innerHTML = parts.join("");
   }
 
