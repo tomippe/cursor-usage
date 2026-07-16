@@ -1,0 +1,148 @@
+{
+  "name": "cursor-usage",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomippe/cursor-usage"
+  },
+  "main": "./dist/extension.js",
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursor-usage.showDetails",
+        "title": "Cursor Usage: Show Details"
+      },
+      {
+        "command": "cursor-usage.refresh",
+        "title": "Cursor Usage: Refresh"
+      },
+      {
+        "command": "cursor-usage.openDashboard",
+        "title": "Cursor Usage: Open Dashboard"
+      }
+    ],
+    "configuration": {
+      "title": "Cursor Usage by tomippe",
+      "properties": {
+        "cursorUsage.pollInterval": {
+          "type": "number",
+          "default": 5,
+          "enum": [
+            1,
+            5,
+            10,
+            30,
+            60
+          ],
+          "enumDescriptions": [
+            "Every 1 minute",
+            "Every 5 minutes",
+            "Every 10 minutes",
+            "Every half hour",
+            "Every hour"
+          ],
+          "description": "How often to refresh usage data (in minutes)"
+        },
+        "cursorUsage.minimalMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show only the active metric: premium requests if not exhausted, or credits if premium is used up"
+        },
+        "cursorUsage.usageDuration": {
+          "type": "string",
+          "default": "billingCycle",
+          "enum": [
+            "1d",
+            "7d",
+            "30d",
+            "billingCycle"
+          ],
+          "enumItemLabels": [
+            "Last 24 hours",
+            "Last 7 days",
+            "Last 30 days",
+            "Current Billing Cycle"
+          ],
+          "enumDescriptions": [
+            "Last 24 hours",
+            "Last 7 days",
+            "Last 30 days",
+            "Current billing cycle (falls back to Last 30 Days when reset metadata is unavailable)"
+          ],
+          "description": "Time range for the usage-by-model breakdown in the tooltip. Current Billing Cycle falls back to Last 30 Days when reset metadata is unavailable."
+        },
+        "cursorUsage.modelBreakdownSortBy": {
+          "type": "string",
+          "default": "tokens",
+          "enum": [
+            "model",
+            "requests",
+            "tokens",
+            "spend"
+          ],
+          "enumItemLabels": [
+            "Model",
+            "Requests",
+            "Tokens",
+            "Spend"
+          ],
+          "description": "Sort column for the usage-by-model table."
+        },
+        "cursorUsage.modelBreakdownSortOrder": {
+          "type": "string",
+          "default": "desc",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "enumItemLabels": [
+            "Ascending",
+            "Descending"
+          ],
+          "description": "Sort direction for the usage-by-model table."
+        },
+        "cursorUsage.excludeZeroTokenModels": {
+          "type": "boolean",
+          "default": false,
+          "description": "Hide rows in the usage-by-model table where token usage is zero."
+        },
+        "cursorUsage.quotaAwareEventDisplay": {
+          "type": "boolean",
+          "default": true,
+          "description": "In the dashboard, show included usage as requests and on-demand usage as spend instead of showing raw request and spend values for every event."
+        }
+      }
+    }
+  },
+  "description": "Fork of Cursor Usage: plan name, Ultra % (Total / First-party / API), and on-demand spend in the status bar.",
+  "displayName": "Cursor Usage by tomippe",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "icon": "icon.png",
+  "license": "MIT",
+  "publisher": "tomippe",
+  "author": "tomippe",
+  "scripts": {
+    "build": "node esbuild.config.mjs --production",
+    "watch": "node esbuild.config.mjs --watch",
+    "package": "node esbuild.config.mjs --production && mkdir -p build && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce package --out \"build/cursor-usage-${VERSION}.vsix\"",
+    "package:vsm": "node esbuild.config.mjs --production && node scripts/prepare-vsm-package.mjs && VERSION=$(node -p \"require('./package.json').version\") && cd \"build/vsm-package\" && npx --yes @vscode/vsce package --out \"../cursor-usage-tomippe-${VERSION}.vsix\"",
+    "publish:ovsx": "./scripts/publish-ovsx.sh",
+    "publish:vsm": "npm run package:vsm && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce publish --packagePath \"build/cursor-usage-tomippe-${VERSION}.vsix\" -p \"$VSCE_PAT\""
+  },
+  "homepage": "https://open-vsx.org/extension/tomippe/cursor-usage",
+  "bugs": "https://github.com/tomippe/cursor-usage/issues"
+}
