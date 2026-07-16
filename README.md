@@ -1,5 +1,7 @@
 # Cursor Usage by tomippe
 
+Repository: [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage)
+
 Fork of [wrick17/cursor-metrics](https://github.com/wrick17/cursor-metrics) (MIT).
 
 Shows Cursor plan usage in the status bar for current spend-based plans (Ultra / Pro):
