@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "fs";
 import packageJson from "../package.json";
+import packageNls from "../package.nls.json";
 
 describe("package configuration", () => {
   it("shows a friendly label for billing cycle in the usage duration setting", () => {
@@ -8,19 +9,25 @@ describe("package configuration", () => {
 
     expect(usageDurationConfig.enum).toContain("billingCycle");
     expect(usageDurationConfig.enumItemLabels).toEqual([
-      "Last 24 hours",
-      "Last 7 days",
-      "Last 30 days",
-      "Current Billing Cycle",
+      "%config.usageDuration.enum.1d%",
+      "%config.usageDuration.enum.7d%",
+      "%config.usageDuration.enum.30d%",
+      "%config.usageDuration.enum.billingCycle%",
     ]);
+    expect(packageNls["config.usageDuration.enum.billingCycle"]).toBe("Current Billing Cycle");
   });
 
   it("publishes under the tomippe fork identity", () => {
-    expect(packageJson.displayName).toBe("Cursor Usage by tomippe");
+    expect(packageJson.displayName).toBe("%extension.displayName%");
+    expect(packageNls["extension.displayName"]).toBe("Cursor Usage by tomippe");
     expect(packageJson.publisher).toBe("tomippe");
-    expect(packageJson.version).toBe("1.0.0");
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.scripts["package:vsm"]).toContain("cursor-usage-tomippe");
     expect(packageJson.scripts["publish:vsm"]).toContain("cursor-usage-tomippe");
+  });
+
+  it("ships runtime localization bundles", () => {
+    expect(packageJson.l10n).toBe("./l10n");
   });
 
   it("keeps a unique VS Marketplace package id distinct from Open VSX name", () => {
@@ -33,11 +40,19 @@ describe("package configuration", () => {
 
     expect(sortByConfig.default).toBe("tokens");
     expect(sortByConfig.enum).toEqual(["model", "requests", "tokens", "spend"]);
-    expect(sortByConfig.enumItemLabels).toEqual(["Model", "Requests", "Tokens", "Spend"]);
+    expect(sortByConfig.enumItemLabels).toEqual([
+      "%config.modelBreakdownSortBy.enum.model%",
+      "%config.modelBreakdownSortBy.enum.requests%",
+      "%config.modelBreakdownSortBy.enum.tokens%",
+      "%config.modelBreakdownSortBy.enum.spend%",
+    ]);
 
     expect(sortOrderConfig.default).toBe("desc");
     expect(sortOrderConfig.enum).toEqual(["asc", "desc"]);
-    expect(sortOrderConfig.enumItemLabels).toEqual(["Ascending", "Descending"]);
+    expect(sortOrderConfig.enumItemLabels).toEqual([
+      "%config.modelBreakdownSortOrder.enum.asc%",
+      "%config.modelBreakdownSortOrder.enum.desc%",
+    ]);
   });
 
   it("exposes a setting to hide zero-token models in the breakdown", () => {

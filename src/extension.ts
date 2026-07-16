@@ -14,6 +14,7 @@ import { buildDashboardState, type DashboardState } from "./dashboard-state";
 import {
   resolveConfiguredUsageDuration,
 } from "./duration-options";
+import { formatResetDate, Msg, t, uiLocale } from "./i18n";
 import { formatTokens } from "./format";
 import {
   aggregateByModel,
@@ -81,19 +82,6 @@ function refreshOnFocus(state: vscode.WindowState) {
   }
 }
 
-function formatResetDate(iso: string): string {
-  const resetDate = new Date(iso);
-  const now = new Date();
-  const diffMs = resetDate.getTime() - now.getTime();
-  const daysLeft = Math.max(0, Math.ceil(diffMs / 86_400_000));
-  const formatted = resetDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return `in ${daysLeft} day${daysLeft !== 1 ? "s" : ""} on ${formatted}`;
-}
-
 function isLightTheme(): boolean {
   const kind = vscode.window.activeColorTheme.kind;
   return kind === vscode.ColorThemeKind.Light || kind === vscode.ColorThemeKind.HighContrastLight;
@@ -156,21 +144,27 @@ function summaryDividerHtml(height = 52): string {
 
 type OnDemandUsage = UsagePayload["onDemand"];
 
+/** Half-width only in Japanese tooltips so the column header does not wrap. */
+function tooltipRequestsHeader(): string {
+  if (uiLocale().startsWith("ja")) return "ﾘｸｴｽﾄ";
+  return t(Msg.requests);
+}
+
 function buildModelBreakdownTableMarkdown(
   rows: Array<{ model: string; totalTokens: number; requests: number; spendCents: number }>,
   tableWidth: number,
 ): string {
   if (rows.length === 0) {
-    return "*No usage in this period*\n\n";
+    return `*${t(Msg.noUsageInPeriod)}*\n\n`;
   }
 
   const lines = [
     `<table width="${tableWidth}" cellspacing="0" cellpadding="0">`,
     `  <tr>`,
-    `    <th align="left" width="45%">Model</th>`,
-    `    <th align="right" width="15%">Requests</th>`,
-    `    <th align="right" width="20%">Tokens</th>`,
-    `    <th align="right" width="20%">Spend</th>`,
+    `    <th align="left" width="45%" style="white-space:nowrap">${t(Msg.model)}</th>`,
+    `    <th align="right" width="15%" style="white-space:nowrap">${tooltipRequestsHeader()}</th>`,
+    `    <th align="right" width="20%" style="white-space:nowrap">${t(Msg.tokens)}</th>`,
+    `    <th align="right" width="20%" style="white-space:nowrap">${t(Msg.spend)}</th>`,
     `  </tr>`,
   ];
 
@@ -262,9 +256,9 @@ function updateStatusBar(data: UsagePayload) {
   tooltip.supportHtml = true;
 
   const barW = 150;
-  let md = `### $(pulse) Cursor Usage by tomippe\n\n`;
+  let md = `### $(pulse) ${t(Msg.cursorUsage)}\n\n`;
   if (planName) {
-    md += `**Plan:** ${planName}\n\n`;
+    md += `**${t(Msg.plan)}:** ${planName}\n\n`;
   }
   md += buildUsageOverviewMarkdown(
     {
@@ -303,11 +297,11 @@ function updateStatusBar(data: UsagePayload) {
 
   if (data.resetsAt) {
     md += `<hr>\n\n`;
-    md += `*Resets ${formatResetDate(data.resetsAt)}*\n\n`;
+    md += `*${formatResetDate(data.resetsAt)}*\n\n`;
   }
 
   md += `<hr>\n\n`;
-  md += `[Open Dashboard](command:${OPEN_DASHBOARD_COMMAND}) | [Refresh](command:cursor-usage.refresh)`;
+  md += `[${t(Msg.openDashboard)}](command:${OPEN_DASHBOARD_COMMAND}) | [${t(Msg.refresh)}](command:cursor-usage.refresh)`;
 
   tooltip.appendMarkdown(md);
   statusBarItem.tooltip = tooltip;
@@ -349,10 +343,10 @@ async function updateUsage() {
       lastError = null;
       updateStatusBar(data);
     } else {
-      lastError = "Could not fetch usage data";
+      lastError = t(Msg.couldNotFetchUsage);
       if (!lastData) {
-        statusBarItem.text = "$(warning) Usage unavailable";
-        statusBarItem.tooltip = "Could not fetch Cursor usage data. Click to see options.";
+        statusBarItem.text = `$(warning) ${t(Msg.usageUnavailable)}`;
+        statusBarItem.tooltip = t(Msg.couldNotFetchUsageClick);
       } else {
         statusBarItem.text = statusBarItem.text.replace("$(loading~spin)", "$(pulse)");
       }
@@ -364,8 +358,8 @@ async function updateUsage() {
     log(`Error in updateUsage: ${msg}`);
     lastError = msg;
     if (!lastData) {
-      statusBarItem.text = "$(warning) Usage unavailable";
-      statusBarItem.tooltip = `Error: ${msg}`;
+      statusBarItem.text = `$(warning) ${t(Msg.usageUnavailable)}`;
+      statusBarItem.tooltip = t(Msg.errorPrefix, msg);
     } else {
       statusBarItem.text = statusBarItem.text.replace("$(loading~spin)", "$(pulse)");
     }
@@ -377,16 +371,20 @@ async function updateUsage() {
 
 async function showDetails() {
   if (!lastData) {
-    const items: string[] = ["Refresh", "Open Dashboard", "Show Logs"];
+    const refreshLabel = t(Msg.refresh);
+    const openDashboardLabel = t(Msg.openDashboard);
+    const showLogsLabel = t(Msg.showLogs);
     const action = await vscode.window.showWarningMessage(
       lastError
-        ? `Cursor usage unavailable: ${lastError}`
-        : "Cursor usage data is not available yet.",
-      ...items,
+        ? t(Msg.usageUnavailableWithError, lastError)
+        : t(Msg.usageNotAvailableYet),
+      refreshLabel,
+      openDashboardLabel,
+      showLogsLabel,
     );
-    if (action === "Refresh") await updateUsage();
-    else if (action === "Open Dashboard") await vscode.commands.executeCommand(OPEN_DASHBOARD_COMMAND);
-    else if (action === "Show Logs") outputChannel.show();
+    if (action === refreshLabel) await updateUsage();
+    else if (action === openDashboardLabel) await vscode.commands.executeCommand(OPEN_DASHBOARD_COMMAND);
+    else if (action === showLogsLabel) outputChannel.show();
     return;
   }
 
@@ -398,34 +396,36 @@ async function showDetails() {
 
   let message: string;
   if (totalPercentUsed !== null) {
-    const parts = [`Total ${formatPlanPercent(totalPercentUsed)}`];
-    if (autoPercentUsed !== null) parts.push(`First-party ${formatPlanPercent(autoPercentUsed)}`);
-    if (apiPercentUsed !== null) parts.push(`API ${formatPlanPercent(apiPercentUsed)}`);
+    const parts = [t(Msg.totalSummary, formatPlanPercent(totalPercentUsed))];
+    if (autoPercentUsed !== null) parts.push(t(Msg.firstPartySummary, formatPlanPercent(autoPercentUsed)));
+    if (apiPercentUsed !== null) parts.push(t(Msg.apiSummary, formatPlanPercent(apiPercentUsed)));
     message = parts.join(" · ");
   } else {
     const reqPct =
       includedRequests.limit > 0
         ? Math.round((includedRequests.used / includedRequests.limit) * 100)
         : 0;
-    message = `Requests: ${includedRequests.used}/${includedRequests.limit} (${reqPct}%)`;
+    message = t(Msg.requestsSummary, includedRequests.used, includedRequests.limit, reqPct);
   }
   if (onDemandVisible) {
     const spendText = onDemand.state === "unlimited"
       ? `$${onDemand.spendDollars.toFixed(2)}`
       : `$${onDemand.spendDollars.toFixed(2)}/$${(onDemand.limitDollars ?? 0).toFixed(2)} (${spendPct ?? 0}%)`;
-    message += ` | On-demand ${spendText}`;
+    message += ` | ${t(Msg.onDemandSummary, spendText)}`;
   }
-  if (resetsAt) message += ` | Resets: ${formatResetDate(resetsAt)}`;
+  if (resetsAt) message += ` | ${formatResetDate(resetsAt)}`;
 
+  const openDashboardLabel = t(Msg.openDashboard);
+  const refreshLabel = t(Msg.refresh);
   const action = await vscode.window.showInformationMessage(
     message,
-    "Open Dashboard",
-    "Refresh",
+    openDashboardLabel,
+    refreshLabel,
   );
 
-  if (action === "Open Dashboard") {
+  if (action === openDashboardLabel) {
     await vscode.commands.executeCommand(OPEN_DASHBOARD_COMMAND);
-  } else if (action === "Refresh") {
+  } else if (action === refreshLabel) {
     await updateUsage();
   }
 }
@@ -447,14 +447,14 @@ function getDashboardState(): DashboardState {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  outputChannel = vscode.window.createOutputChannel("Cursor Usage");
+  outputChannel = vscode.window.createOutputChannel(t(Msg.cursorUsage));
   log("Extension activating...");
 
   configure({ logger: log });
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.command = OPEN_DASHBOARD_COMMAND;
-  statusBarItem.text = "$(loading~spin) Usage";
+  statusBarItem.text = `$(loading~spin) ${t(Msg.usage)}`;
   statusBarItem.show();
 
   const showDetailsCmd = vscode.commands.registerCommand("cursor-usage.showDetails", showDetails);

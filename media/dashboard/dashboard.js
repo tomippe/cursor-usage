@@ -3,6 +3,28 @@
 
   const vscode = acquireVsCodeApi();
   const DAY_MS = 86_400_000;
+  const L = window.__L10N__ || {};
+  const LOCALE = window.__LOCALE__ || "en-US";
+
+  function l10n(key) {
+    return L[key] != null ? L[key] : key;
+  }
+
+  function l10nTemplate(key, ...args) {
+    let s = l10n(key);
+    args.forEach(function (a, i) {
+      s = s.replace("{" + i + "}", String(a));
+    });
+    return s;
+  }
+
+  function translateKind(kind) {
+    if (kind === "Included") return l10n("kindIncluded");
+    if (kind === "On-Demand") return l10n("kindOnDemand");
+    if (kind === "Errored") return l10n("kindErrored");
+    if (kind === "Aborted") return l10n("kindAborted");
+    return kind;
+  }
 
   const ui = {
     summaryCards: document.getElementById("summary-cards"),
@@ -133,9 +155,11 @@
   }
 
   function formatDateTime(ts) {
-    const d = new Date(toMillis(ts));
-    if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleString("en-US", {
+    const ms = toMillis(ts);
+    if (!Number.isFinite(ms)) return "—";
+    if (window.__formatDateTime) return window.__formatDateTime(ms);
+    const d = new Date(ms);
+    return d.toLocaleString(LOCALE, {
       month: "short",
       day: "numeric",
       hour: "numeric",
@@ -173,7 +197,8 @@
   }
 
   function formatDayLabel(dayMs) {
-    return new Date(dayMs).toLocaleDateString("en-US", {
+    if (window.__formatChartDayLabel) return window.__formatChartDayLabel(dayMs);
+    return new Date(dayMs).toLocaleDateString(LOCALE, {
       month: "short",
       day: "numeric",
       timeZone: "UTC",
@@ -184,8 +209,11 @@
     if (!iso) return "";
     const reset = new Date(iso);
     const days = Math.max(0, Math.ceil((reset.getTime() - Date.now()) / DAY_MS));
-    const formatted = reset.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    return "Resets in " + days + " day" + (days === 1 ? "" : "s") + " on " + formatted;
+    const formatted = window.__formatShortDate
+      ? window.__formatShortDate(reset)
+      : reset.toLocaleDateString(LOCALE, { month: "short", day: "numeric", year: "numeric" });
+    const template = days === 1 ? l10n("resetsInDaysOnSingular") : l10n("resetsInDaysOn");
+    return l10nTemplate(template, days, formatted);
   }
 
   function setActiveRangeButton() {
@@ -221,19 +249,19 @@
     let valText, footerText, ratio;
     if (onDemand.state === "unlimited") {
       valText = formatDollars(onDemand.spendDollars);
-      footerText = "Unlimited";
+      footerText = l10n("unlimited");
       ratio = 0;
     } else {
       valText = formatDollars(onDemand.spendDollars) + " / " + formatDollars(onDemand.limitDollars || 0);
       ratio = onDemand.limitDollars > 0 ? Math.min(1, onDemand.spendDollars / onDemand.limitDollars) : 0;
-      footerText = "Pay for extra usage beyond your plan limits";
+      footerText = l10n("payForExtraUsage");
     }
-    return summaryCardHtml("On-Demand Usage", valText, Math.round(ratio * 100), footerText);
+    return summaryCardHtml(l10n("onDemandUsage"), valText, Math.round(ratio * 100), footerText);
   }
 
   function renderSummaryCards() {
     if (!state || !state.data) {
-      ui.summaryCards.innerHTML = '<div class="card"><div class="card-label">No data yet</div></div>';
+      ui.summaryCards.innerHTML = '<div class="card"><div class="card-label">' + l10n("noDataYet") + "</div></div>";
       return;
     }
     const { includedRequests, onDemand, totalPercentUsed, autoPercentUsed, apiPercentUsed } = state.data;
@@ -243,7 +271,7 @@
     if (totalPercentUsed !== null && totalPercentUsed !== undefined) {
       parts.push(
         summaryCardHtml(
-          "Total",
+          l10n("total"),
           formatPlanPercent(totalPercentUsed),
           percentBarWidth(totalPercentUsed),
           formatResetCountdown(state.resetsAt),
@@ -252,7 +280,7 @@
       if (autoPercentUsed !== null && autoPercentUsed !== undefined) {
         parts.push(
           summaryCardHtml(
-            "First-party models",
+            l10n("firstPartyModels"),
             formatPlanPercent(autoPercentUsed),
             percentBarWidth(autoPercentUsed),
             "",
@@ -261,7 +289,7 @@
       }
       if (apiPercentUsed !== null && apiPercentUsed !== undefined) {
         parts.push(
-          summaryCardHtml("API", formatPlanPercent(apiPercentUsed), percentBarWidth(apiPercentUsed), ""),
+          summaryCardHtml(l10n("api"), formatPlanPercent(apiPercentUsed), percentBarWidth(apiPercentUsed), ""),
         );
       }
       const onDemandCard = renderOnDemandCard(onDemand);
@@ -274,7 +302,7 @@
     const reqRatio = includedRequests.limit > 0 ? Math.min(1, includedRequests.used / includedRequests.limit) : 0;
     parts.push(
       summaryCardHtml(
-        "Included-Request Usage",
+        l10n("includedRequestUsage"),
         includedRequests.used + " / " + includedRequests.limit,
         Math.round(reqRatio * 100),
         formatResetCountdown(state.resetsAt),
@@ -406,7 +434,7 @@
 
     const title = (tooltip.title && tooltip.title[0]) || "";
     const isSpend = opts.isSpend;
-    const metricLabel = isSpend ? "Spend" : opts.metric === "tokens" ? "Tokens" : "Requests";
+    const metricLabel = isSpend ? l10n("spend") : opts.metric === "tokens" ? l10n("tokens") : l10n("requests");
 
     const formatMetric = (v) =>
       isSpend ? formatDollars(v) : opts.metric === "tokens" ? formatTokens(v) : formatRequests(v);
@@ -426,8 +454,8 @@
     }).join("");
 
     const headerCols = isSpend
-      ? '<th>Model</th><th class="num">' + metricLabel + '</th>'
-      : '<th>Model</th><th class="num">' + metricLabel + '</th><th class="num">Spend</th>';
+      ? "<th>" + l10n("model") + '</th><th class="num">' + metricLabel + "</th>"
+      : "<th>" + l10n("model") + '</th><th class="num">' + metricLabel + '</th><th class="num">' + l10n("spend") + "</th>";
 
     el.innerHTML =
       '<div class="t-title">' + escapeHtml(title) + '</div>' +
@@ -461,7 +489,7 @@
     const series = buildChartSeries();
     rebuildModelColorMap(series);
     const isSpend = local.metric === "spend";
-    const yLabel = isSpend ? "Spend" : local.metric === "tokens" ? "Tokens" : "Requests";
+    const yLabel = isSpend ? l10n("spend") : local.metric === "tokens" ? l10n("tokens") : l10n("requests");
 
     // For each x (day), find the topmost non-zero dataset so we only round
     // that segment's top corners. Datasets stack in order, so the "top" is
@@ -586,7 +614,7 @@
     const events = getSortedEvents();
 
     if (events.length === 0) {
-      ui.tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px;" class="muted">No events in this range</td></tr>';
+      ui.tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px;" class="muted">' + l10n("noEventsInRange") + "</td></tr>";
     } else {
       ui.tableBody.innerHTML = events.map((e) => {
         const maxBadge = e.maxMode ? ' <span class="max-badge">MAX</span>' : "";
@@ -596,7 +624,7 @@
         const rowStyle = 'background:' + tintColor(color, 0.10) + ';box-shadow:inset 3px 0 0 ' + color + ';';
         return '<tr style="' + rowStyle + '">' +
           "<td>" + formatDateTime(e.timestamp) + "</td>" +
-          '<td><span class="kind-badge kind-' + e.kind.replace(/[^A-Za-z]/g, "") + '">' + e.kind + "</span></td>" +
+          '<td><span class="kind-badge kind-' + e.kind.replace(/[^A-Za-z]/g, "") + '">' + translateKind(e.kind) + "</span></td>" +
           "<td>" + escapeHtml(e.model) + maxBadge + "</td>" +
           '<td class="num">' + formatTokens(e.totalTokens || 0) + "</td>" +
           '<td class="num">' + eventRequestsText(e) + "</td>" +
@@ -613,7 +641,8 @@
     });
 
     if (events.length > 0) {
-      ui.pagination.innerHTML = '<span class="muted">' + events.length + ' event' + (events.length === 1 ? '' : 's') + '</span>';
+      const countLabel = events.length === 1 ? l10n("eventCountSingular") : l10n("eventCount");
+      ui.pagination.innerHTML = '<span class="muted">' + l10nTemplate(countLabel, events.length) + "</span>";
     } else {
       ui.pagination.innerHTML = "";
     }
@@ -624,10 +653,10 @@
   }
 
   function rangeLabel() {
-    if (local.range === "1d") return "Last 24 hours";
-    if (local.range === "7d") return "Last 7 days";
-    if (local.range === "30d") return "Last 30 days";
-    return "Current Billing Cycle";
+    if (local.range === "1d") return l10n("last24Hours");
+    if (local.range === "7d") return l10n("last7Days");
+    if (local.range === "30d") return l10n("last30Days");
+    return l10n("currentBillingCycle");
   }
 
   function aggregateModelBreakdown() {
@@ -669,7 +698,7 @@
     }
 
     if (rows.length === 0) {
-      ui.breakdownBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px;" class="muted">No usage in this range</td></tr>';
+      ui.breakdownBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px;" class="muted">' + l10n("noUsageInRange") + "</td></tr>";
       return;
     }
     ui.breakdownBody.innerHTML = rows.map((r) => {
@@ -748,7 +777,10 @@
     renderBreakdown();
     renderTable();
     showError(state.error);
-    ui.lastUpdated.textContent = "Updated " + new Date(state.generatedAt).toLocaleTimeString();
+    ui.lastUpdated.textContent = l10nTemplate(
+      l10n("updatedAt"),
+      window.__formatTime ? window.__formatTime(state.generatedAt) : new Date(state.generatedAt).toLocaleTimeString(LOCALE),
+    );
   }
 
   // Event wiring
@@ -832,7 +864,7 @@
       renderAll();
     } else if (msg.type === "loading") {
       ui.refreshBtn.disabled = !!msg.on;
-      ui.refreshBtn.textContent = msg.on ? "Refreshing…" : "Refresh";
+      ui.refreshBtn.textContent = msg.on ? l10n("refreshing") : l10n("refresh");
     }
   });
 

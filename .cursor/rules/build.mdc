@@ -52,4 +52,4 @@ alwaysApply: true
 
 - メモ: `docs/app-page.md`
 - `app-weburl`: Open VSX の拡張ページ
-- `app-webdesc`: `Open VSX<br>日本語`（ボタン小ラベル。一覧のプラットフォーム表記はテーマが URL から **VSX**）
+- `app-webdesc`: `Open VSX<br>日本語,English,中文`（ボタン小ラベル。一覧のプラットフォーム表記はテーマが URL から **VSX**）

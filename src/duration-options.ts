@@ -1,3 +1,4 @@
+import { Msg, t } from "./i18n";
 import type { UsageDuration } from "./model-breakdown";
 
 export function isUsageDuration(value: unknown): value is UsageDuration {
@@ -5,10 +6,10 @@ export function isUsageDuration(value: unknown): value is UsageDuration {
 }
 
 export function getDurationLabel(duration: UsageDuration): string {
-  if (duration === "1d") return "24 hours";
-  if (duration === "7d") return "7 days";
-  if (duration === "30d") return "30 days";
-  return "Current Billing Cycle";
+  if (duration === "1d") return t(Msg.hours24);
+  if (duration === "7d") return t(Msg.days7);
+  if (duration === "30d") return t(Msg.days30);
+  return t(Msg.currentBillingCycle);
 }
 
 export function normalizeUsageDuration(duration: UsageDuration, hasBillingCycle: boolean): UsageDuration {

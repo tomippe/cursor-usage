@@ -1,6 +1,7 @@
 {
   "name": "cursor-usage",
-  "version": "1.0.2",
+  "version": "1.0.3",
+  "l10n": "./l10n",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomippe/cursor-usage"
@@ -22,19 +23,19 @@
     "commands": [
       {
         "command": "cursor-usage.showDetails",
-        "title": "Cursor Usage: Show Details"
+        "title": "%command.showDetails%"
       },
       {
         "command": "cursor-usage.refresh",
-        "title": "Cursor Usage: Refresh"
+        "title": "%command.refresh%"
       },
       {
         "command": "cursor-usage.openDashboard",
-        "title": "Cursor Usage: Open Dashboard"
+        "title": "%command.openDashboard%"
       }
     ],
     "configuration": {
-      "title": "Cursor Usage by tomippe",
+      "title": "%config.title%",
       "properties": {
         "cursorUsage.pollInterval": {
           "type": "number",
@@ -47,18 +48,18 @@
             60
           ],
           "enumDescriptions": [
-            "Every 1 minute",
-            "Every 5 minutes",
-            "Every 10 minutes",
-            "Every half hour",
-            "Every hour"
+            "%config.pollInterval.enum.1%",
+            "%config.pollInterval.enum.5%",
+            "%config.pollInterval.enum.10%",
+            "%config.pollInterval.enum.30%",
+            "%config.pollInterval.enum.60%"
           ],
-          "description": "How often to refresh usage data (in minutes)"
+          "description": "%config.pollInterval.description%"
         },
         "cursorUsage.minimalMode": {
           "type": "boolean",
           "default": false,
-          "description": "Show only the active metric: premium requests if not exhausted, or credits if premium is used up"
+          "description": "%config.minimalMode.description%"
         },
         "cursorUsage.usageDuration": {
           "type": "string",
@@ -70,18 +71,18 @@
             "billingCycle"
           ],
           "enumItemLabels": [
-            "Last 24 hours",
-            "Last 7 days",
-            "Last 30 days",
-            "Current Billing Cycle"
+            "%config.usageDuration.enum.1d%",
+            "%config.usageDuration.enum.7d%",
+            "%config.usageDuration.enum.30d%",
+            "%config.usageDuration.enum.billingCycle%"
           ],
           "enumDescriptions": [
-            "Last 24 hours",
-            "Last 7 days",
-            "Last 30 days",
-            "Current billing cycle (falls back to Last 30 Days when reset metadata is unavailable)"
+            "%config.usageDuration.enumDesc.1d%",
+            "%config.usageDuration.enumDesc.7d%",
+            "%config.usageDuration.enumDesc.30d%",
+            "%config.usageDuration.enumDesc.billingCycle%"
           ],
-          "description": "Time range for the usage-by-model breakdown in the tooltip. Current Billing Cycle falls back to Last 30 Days when reset metadata is unavailable."
+          "description": "%config.usageDuration.description%"
         },
         "cursorUsage.modelBreakdownSortBy": {
           "type": "string",
@@ -93,12 +94,12 @@
             "spend"
           ],
           "enumItemLabels": [
-            "Model",
-            "Requests",
-            "Tokens",
-            "Spend"
+            "%config.modelBreakdownSortBy.enum.model%",
+            "%config.modelBreakdownSortBy.enum.requests%",
+            "%config.modelBreakdownSortBy.enum.tokens%",
+            "%config.modelBreakdownSortBy.enum.spend%"
           ],
-          "description": "Sort column for the usage-by-model table."
+          "description": "%config.modelBreakdownSortBy.description%"
         },
         "cursorUsage.modelBreakdownSortOrder": {
           "type": "string",
@@ -108,26 +109,26 @@
             "desc"
           ],
           "enumItemLabels": [
-            "Ascending",
-            "Descending"
+            "%config.modelBreakdownSortOrder.enum.asc%",
+            "%config.modelBreakdownSortOrder.enum.desc%"
           ],
-          "description": "Sort direction for the usage-by-model table."
+          "description": "%config.modelBreakdownSortOrder.description%"
         },
         "cursorUsage.excludeZeroTokenModels": {
           "type": "boolean",
           "default": false,
-          "description": "Hide rows in the usage-by-model table where token usage is zero."
+          "description": "%config.excludeZeroTokenModels.description%"
         },
         "cursorUsage.quotaAwareEventDisplay": {
           "type": "boolean",
           "default": true,
-          "description": "In the dashboard, show included usage as requests and on-demand usage as spend instead of showing raw request and spend values for every event."
+          "description": "%config.quotaAwareEventDisplay.description%"
         }
       }
     }
   },
-  "description": "Fork of Cursor Usage: plan name, Ultra % (Total / First-party / API), and on-demand spend in the status bar.",
-  "displayName": "Cursor Usage by tomippe",
+  "description": "%extension.description%",
+  "displayName": "%extension.displayName%",
   "engines": {
     "vscode": "^1.85.0"
   },

@@ -1,5 +1,6 @@
 import type { UsagePayload } from "./cursor-api";
 import { getDurationLabel } from "./duration-options";
+import { Msg, t } from "./i18n";
 import type { UsageDuration } from "./model-breakdown";
 
 type OnDemandUsage = UsagePayload["onDemand"];
@@ -78,7 +79,7 @@ function buildModernPlanOverview(
 ): string {
   const rows: OverviewMetric[] = [
     {
-      label: "Total",
+      label: t(Msg.total),
       value: formatPlanPercent(data.totalPercentUsed ?? 0),
       footer: renderProgressBar.html(percentRatio(data.totalPercentUsed)),
     },
@@ -86,7 +87,7 @@ function buildModernPlanOverview(
 
   if (data.autoPercentUsed !== null && data.autoPercentUsed !== undefined) {
     rows.push({
-      label: "First-party models",
+      label: t(Msg.firstPartyModels),
       value: formatPlanPercent(data.autoPercentUsed),
       footer: renderProgressBar.html(percentRatio(data.autoPercentUsed)),
     });
@@ -94,7 +95,7 @@ function buildModernPlanOverview(
 
   if (data.apiPercentUsed !== null && data.apiPercentUsed !== undefined) {
     rows.push({
-      label: "API",
+      label: t(Msg.api),
       value: formatPlanPercent(data.apiPercentUsed),
       footer: renderProgressBar.html(percentRatio(data.apiPercentUsed)),
     });
@@ -103,17 +104,19 @@ function buildModernPlanOverview(
   if (data.onDemand.state !== "disabled") {
     if (data.onDemand.state === "unlimited") {
       rows.push({
-        label: "On-demand",
+        label: t(Msg.onDemand),
         value: formatOnDemandValue(data.onDemand),
-        footer: "<sub>Unlimited</sub>",
+        footer: `<sub>${t(Msg.unlimited)}</sub>`,
       });
     } else {
       const spendRatio = getOnDemandRatio(data.onDemand);
       rows.push({
-        label: "On-demand",
+        label: t(Msg.onDemand),
         value: formatOnDemandValue(data.onDemand),
         footer:
-          spendRatio === null ? "<sub>Spend unavailable</sub>" : renderProgressBar.html(spendRatio),
+          spendRatio === null
+            ? `<sub>${t(Msg.spendUnavailable)}</sub>`
+            : renderProgressBar.html(spendRatio),
       });
     }
   }
@@ -137,7 +140,7 @@ function buildLegacyRequestOverview(
   if (onDemand.state === "disabled") {
     return [
       `<table width="100%" cellspacing="0" cellpadding="0">`,
-      `  <tr><td width="100%"><sub>Included requests</sub></td></tr>`,
+      `  <tr><td width="100%"><sub>${t(Msg.includedRequests)}</sub></td></tr>`,
       `  <tr><td><strong>${includedRequests.used} / ${includedRequests.limit}</strong></td></tr>`,
       `  <tr><td>${renderProgressBar.html(reqRatio)}</td></tr>`,
       `</table>`,
@@ -148,17 +151,17 @@ function buildLegacyRequestOverview(
   const onDemandValue = formatOnDemandValue(onDemand);
   const onDemandFooter =
     onDemand.state === "unlimited"
-      ? "<sub>Unlimited</sub>"
+      ? `<sub>${t(Msg.unlimited)}</sub>`
       : (() => {
           const spendRatio = getOnDemandRatio(onDemand);
           return spendRatio === null
-            ? "<sub>Spend unavailable</sub>"
+            ? `<sub>${t(Msg.spendUnavailable)}</sub>`
             : renderProgressBar.html(spendRatio);
         })();
 
   return [
     `<table width="100%" cellspacing="0" cellpadding="0">`,
-    `  <tr><td><sub>Included requests</sub></td><td width="2%" rowspan="3" valign="top">${renderProgressBar.divider()}</td><td><sub>On-demand</sub></td></tr>`,
+    `  <tr><td><sub>${t(Msg.includedRequests)}</sub></td><td width="2%" rowspan="3" valign="top">${renderProgressBar.divider()}</td><td><sub>${t(Msg.onDemand)}</sub></td></tr>`,
     `  <tr><td><strong>${includedRequests.used} / ${includedRequests.limit}</strong></td><td><strong>${onDemandValue}</strong></td></tr>`,
     `  <tr><td>${renderProgressBar.html(reqRatio)}</td><td>${onDemandFooter}</td></tr>`,
     `</table>`,
@@ -180,5 +183,5 @@ export function buildUsageOverviewMarkdown(
 }
 
 export function buildUsageByModelHeadingMarkdown(duration: UsageDuration): string {
-  return `**Usage by Model** *(${getDurationLabel(duration)})* &nbsp;[Change](command:${OPEN_DURATION_SETTING_COMMAND})\n\n`;
+  return `**${t(Msg.usageByModel)}** *(${getDurationLabel(duration)})* &nbsp;[${t(Msg.change)}](command:${OPEN_DURATION_SETTING_COMMAND})\n\n`;
 }

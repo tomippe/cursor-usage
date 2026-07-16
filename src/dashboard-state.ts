@@ -93,10 +93,7 @@ function buildDayBuckets(cutoff: number, now: number): number[] {
   return days;
 }
 
-function formatDayLabel(dayMs: number): string {
-  const d = new Date(dayMs);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-}
+import { formatChartDayLabel } from "./locale";
 
 function eventValue(event: UsageEvent, metric: ChartMetric, quotaAwareEventDisplay: boolean): number {
   if (metric === "tokens") return event.totalTokens;
@@ -153,7 +150,7 @@ export function aggregateChartSeries(
   datasets.sort((a, b) => totalOf(b) - totalOf(a));
 
   return {
-    labels: days.map(formatDayLabel),
+    labels: days.map(formatChartDayLabel),
     datasets,
   };
 }

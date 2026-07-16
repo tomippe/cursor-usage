@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
 import * as vscode from "vscode";
 import type { DashboardState } from "./dashboard-state";
+import { getDashboardL10n, Msg, t } from "./i18n";
+import { dashboardLocaleFormatScript, uiLocale } from "./locale";
 
 export const OPEN_DASHBOARD_COMMAND = "cursor-usage.openDashboard";
 
@@ -26,7 +28,7 @@ export class DashboardPanel {
 
     const panel = vscode.window.createWebviewPanel(
       "cursorUsageDashboard",
-      "Cursor Usage",
+      t(Msg.cursorUsage),
       vscode.ViewColumn.Active,
       {
         enableScripts: true,
@@ -106,21 +108,25 @@ export class DashboardPanel {
       `font-src ${webview.cspSource}`,
     ].join("; ");
 
+    const lang = uiLocale().slice(0, 2);
+    const l10nJson = JSON.stringify(getDashboardL10n());
+    const localeJson = JSON.stringify(uiLocale());
+
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cursor Usage</title>
+  <title>${t(Msg.cursorUsage)}</title>
   <link rel="stylesheet" href="${cssUri}" />
 </head>
 <body>
   <header class="dashboard-header">
-    <h1>Cursor Usage</h1>
+    <h1>${t(Msg.cursorUsage)}</h1>
     <div class="header-actions">
       <span id="last-updated" class="muted"></span>
-      <button id="refresh-btn" type="button">Refresh</button>
+      <button id="refresh-btn" type="button">${t(Msg.refresh)}</button>
     </div>
   </header>
 
@@ -128,10 +134,10 @@ export class DashboardPanel {
 
   <section class="controls">
     <div class="range-selector" id="range-selector" role="tablist">
-      <button data-range="1d" type="button">Last 24 hours</button>
-      <button data-range="7d" type="button">Last 7 days</button>
-      <button data-range="30d" type="button">Last 30 days</button>
-      <button data-range="billingCycle" type="button">Current Billing Cycle</button>
+      <button data-range="1d" type="button">${t(Msg.last24Hours)}</button>
+      <button data-range="7d" type="button">${t(Msg.last7Days)}</button>
+      <button data-range="30d" type="button">${t(Msg.last30Days)}</button>
+      <button data-range="billingCycle" type="button">${t(Msg.currentBillingCycle)}</button>
     </div>
   </section>
 
@@ -144,28 +150,28 @@ export class DashboardPanel {
           data-toggle-section="usage"
           aria-expanded="true"
           aria-controls="section-body-usage"
-          aria-label="Toggle Your Usage section"
+          aria-label="${t(Msg.toggleYourUsageSection)}"
         >
           <svg class="section-arrow" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div>
-          <h2>Your Usage</h2>
-          <p class="muted">Per-day usage over the selected range</p>
+          <h2>${t(Msg.yourUsage)}</h2>
+          <p class="muted">${t(Msg.perDayUsageHint)}</p>
         </div>
       </div>
       <div class="chart-filters">
-        <label>Usage:
+        <label>${t(Msg.usageFilterLabel)}
           <select id="usage-filter">
-            <option value="all">All</option>
-            <option value="included">Included</option>
-            <option value="ondemand">On-Demand</option>
+            <option value="all">${t(Msg.all)}</option>
+            <option value="included">${t(Msg.included)}</option>
+            <option value="ondemand">${t(Msg.onDemandFilter)}</option>
           </select>
         </label>
-        <label>Metric:
+        <label>${t(Msg.metricFilterLabel)}
           <select id="metric-filter">
-            <option value="spend">Spend</option>
-            <option value="tokens" selected>Tokens</option>
-            <option value="requests">Requests</option>
+            <option value="spend">${t(Msg.spend)}</option>
+            <option value="tokens" selected>${t(Msg.tokens)}</option>
+            <option value="requests">${t(Msg.requests)}</option>
           </select>
         </label>
       </div>
@@ -187,11 +193,11 @@ export class DashboardPanel {
           data-toggle-section="breakdown"
           aria-expanded="true"
           aria-controls="section-body-breakdown"
-          aria-label="Toggle Usage by Model section"
+          aria-label="${t(Msg.toggleUsageByModelSection)}"
         >
           <svg class="section-arrow" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <h2>Usage by Model</h2>
+        <h2>${t(Msg.usageByModel)}</h2>
       </div>
       <span class="muted small" id="breakdown-range-label"></span>
     </div>
@@ -200,10 +206,10 @@ export class DashboardPanel {
         <table id="breakdown-table">
           <thead>
             <tr>
-              <th data-sort="model" class="sortable">Model</th>
-              <th data-sort="requests" class="sortable num">Requests</th>
-              <th data-sort="totalTokens" class="sortable num">Tokens</th>
-              <th data-sort="spendCents" class="sortable num">Spend</th>
+              <th data-sort="model" class="sortable">${t(Msg.model)}</th>
+              <th data-sort="requests" class="sortable num">${t(Msg.requests)}</th>
+              <th data-sort="totalTokens" class="sortable num">${t(Msg.tokens)}</th>
+              <th data-sort="spendCents" class="sortable num">${t(Msg.spend)}</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -221,25 +227,25 @@ export class DashboardPanel {
           data-toggle-section="events"
           aria-expanded="true"
           aria-controls="section-body-events"
-          aria-label="Toggle Events section"
+          aria-label="${t(Msg.toggleEventsSection)}"
         >
           <svg class="section-arrow" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <h2>Events</h2>
+        <h2>${t(Msg.events)}</h2>
       </div>
-      <button id="export-csv" type="button">Export CSV</button>
+      <button id="export-csv" type="button">${t(Msg.exportCsv)}</button>
     </div>
     <div id="section-body-events" class="section-body">
       <div class="table-scroll">
         <table id="events-table">
           <thead>
             <tr>
-              <th data-sort="timestamp" class="sortable">Date</th>
-              <th data-sort="kind" class="sortable">Type</th>
-              <th data-sort="model" class="sortable">Model</th>
-              <th data-sort="totalTokens" class="sortable num">Tokens</th>
-              <th data-sort="requests" class="sortable num">Requests</th>
-              <th data-sort="spendCents" class="sortable num">Spend</th>
+              <th data-sort="timestamp" class="sortable">${t(Msg.date)}</th>
+              <th data-sort="kind" class="sortable">${t(Msg.type)}</th>
+              <th data-sort="model" class="sortable">${t(Msg.model)}</th>
+              <th data-sort="totalTokens" class="sortable num">${t(Msg.tokens)}</th>
+              <th data-sort="requests" class="sortable num">${t(Msg.requests)}</th>
+              <th data-sort="spendCents" class="sortable num">${t(Msg.spend)}</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -251,6 +257,11 @@ export class DashboardPanel {
 
   <div id="error-banner" class="error-banner hidden"></div>
 
+  <script nonce="${nonce}">
+    window.__L10N__ = ${l10nJson};
+    window.__LOCALE__ = ${localeJson};
+  </script>
+  <script nonce="${nonce}">${dashboardLocaleFormatScript()}</script>
   <script nonce="${nonce}" src="${chartUri}"></script>
   <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
