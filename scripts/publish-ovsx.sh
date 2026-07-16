@@ -24,15 +24,23 @@ fi
 VERSION="$(node -p "require('./package.json').version")"
 VSIX="$ROOT/build/cursor-usage-${VERSION}.vsix"
 PUBLISHER="$(node -p "require('./package.json').publisher")"
+NAME="$(node -p "require('./package.json').name")"
+REPO_RAW="https://github.com/tomippe/cursor-usage/raw/main"
 
 if [[ ! -f "$VSIX" ]]; then
   echo "Building $VSIX ..."
-  npm install
+  if [[ ! -d node_modules/esbuild ]]; then
+    if command -v bun >/dev/null 2>&1; then
+      bun install
+    else
+      npm install
+    fi
+  fi
   node esbuild.config.mjs --production
   mkdir -p build
   npx --yes @vscode/vsce package --out "$VSIX" \
-    --baseContentUrl https://github.com/wrick17/cursor-metrics/raw/main \
-    --baseImagesUrl https://github.com/wrick17/cursor-metrics/raw/main
+    --baseContentUrl "$REPO_RAW" \
+    --baseImagesUrl "$REPO_RAW"
 fi
 
 echo "Ensuring namespace: $PUBLISHER"
@@ -40,4 +48,4 @@ npx --yes ovsx create-namespace "$PUBLISHER" -p "$OPEN_VSX_TOKEN" || true
 
 echo "Publishing $VSIX ..."
 npx --yes ovsx publish "$VSIX" -p "$OPEN_VSX_TOKEN"
-echo "Done: https://open-vsx.org/extension/${PUBLISHER}/cursor-usage"
+echo "Done: https://open-vsx.org/extension/${PUBLISHER}/${NAME}"

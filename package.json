@@ -1,6 +1,6 @@
 {
   "name": "cursor-usage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomippe/cursor-usage"
@@ -138,7 +138,7 @@
   "scripts": {
     "build": "node esbuild.config.mjs --production",
     "watch": "node esbuild.config.mjs --watch",
-    "package": "node esbuild.config.mjs --production && mkdir -p build && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce package --out \"build/cursor-usage-${VERSION}.vsix\"",
+    "package": "node esbuild.config.mjs --production && mkdir -p build && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce package --out \"build/cursor-usage-${VERSION}.vsix\" --baseContentUrl https://github.com/tomippe/cursor-usage/raw/main --baseImagesUrl https://github.com/tomippe/cursor-usage/raw/main",
     "package:vsm": "node esbuild.config.mjs --production && node scripts/prepare-vsm-package.mjs && VERSION=$(node -p \"require('./package.json').version\") && cd \"build/vsm-package\" && npx --yes @vscode/vsce package --out \"../cursor-usage-tomippe-${VERSION}.vsix\"",
     "publish:ovsx": "./scripts/publish-ovsx.sh",
     "publish:vsm": "npm run package:vsm && VERSION=$(node -p \"require('./package.json').version\") && npx --yes @vscode/vsce publish --packagePath \"build/cursor-usage-tomippe-${VERSION}.vsix\" -p \"$VSCE_PAT\""

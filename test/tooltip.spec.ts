@@ -32,6 +32,9 @@ describe("buildUsageOverviewMarkdown", () => {
     expect(markdown).toContain("<bar:0.16>");
     expect(markdown).toContain("<bar:0.20>");
     expect(markdown).toContain("<bar:0.01>");
+    // 2×2 grid: Total | First-party, then API | On-demand
+    expect(markdown).toContain("<td><sub>Total</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>First-party models</sub></td>");
+    expect(markdown).toContain("<td><sub>API</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>On-demand</sub></td>");
     expect(markdown).not.toContain("Included");
     expect(markdown).not.toContain("0 / 0");
   });

@@ -1,0 +1,55 @@
+---
+description: Cursor Usage (VS Code / Cursor 拡張) のビルド仕様
+alwaysApply: true
+---
+
+# Cursor Usage ビルド仕様
+
+**共通ルール（自動では読み込まれないため、ファイル編集・ビルド・コミットの前に必ず Read ツールで読むこと）:**
+- `../build-common/.cursor/rules/build-system.mdc`
+
+## 概要
+
+- **種別**: VS Code / Cursor 拡張（Open VSX）
+- **ビルド** (`./build.sh`):
+  1. `version.txt` → `package.json` の version 同期
+  2. VSIX 作成（`npm run package` → `build/cursor-usage-{VERSION}.vsix`）
+  3. Open VSX へアップロード（`scripts/publish-ovsx.sh`。`-noupload` でスキップ）
+  4. 紹介ページ用 `manifest.json` 作成 → `../apps.tomippe.jp/cursor-usage/` → FTP
+  5. WordPress 紹介ページの `app-versions`（履歴）を先頭に追記
+  6. 版上げ → Git コミット＆プッシュ
+- **配布**: [Open VSX](https://open-vsx.org/extension/tomippe/cursor-usage)
+- **紹介ページ**: `platform: ["web"]` + `app-weburl` に Open VSX URL。テーマが `open-vsx.org` を検出して一覧ラベルを **VSX** にする
+
+## コマンド
+
+```bash
+./build.sh -cm "変更要約"
+./build.sh -noupload -cm "Open VSX 以外まで"   # Open VSX のみスキップ（manifest / 履歴は実行）
+./build.sh -noverup -cm "版上げなし"           # ユーザー明示時のみ
+```
+
+| オプション | 説明 |
+|---|---|
+| `-cm "メッセージ"` | コミット要約（＋ `app-versions` の内容） |
+| `-noverup` | 版上げスキップ（ユーザー明示時のみ） |
+| `-noupload` | Open VSX アップロードをスキップ（manifest / 履歴は実行） |
+
+単体 Open VSX のみ: `./scripts/publish-ovsx.sh` または `npm run publish:ovsx`
+
+## 固有設定
+
+| 項目 | 値 |
+|---|---|
+| スラッグ | `cursor-usage` |
+| Extension ID | `tomippe.cursor-usage` |
+| Open VSX | `https://open-vsx.org/extension/tomippe/cursor-usage` |
+| ローカル配布 | `../apps.tomippe.jp/cursor-usage/manifest.json`（`version` / `vsx_version`） |
+| 認証 | `~/.ovsx-env` の `OPEN_VSX_TOKEN`、`~/.wp-env` + `.env` の `WP_APP_POST_ID` |
+| Marketplace | `npm run publish:vsm`（任意・別系統。フルビルドには含めない） |
+
+## 紹介ページ
+
+- メモ: `docs/app-page.md`
+- `app-weburl`: Open VSX の拡張ページ
+- `app-webdesc`: `Open VSX<br>日本語`（ボタン小ラベル。一覧のプラットフォーム表記はテーマが URL から **VSX**）

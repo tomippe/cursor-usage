@@ -44,7 +44,31 @@ function hasModernPlanUsage(
   return data.totalPercentUsed !== null && data.totalPercentUsed !== undefined;
 }
 
-/** Spending-style rows: Total / First-party / API / On-demand */
+type OverviewMetric = { label: string; value: string; footer: string };
+
+function appendOverviewPair(
+  lines: string[],
+  left: OverviewMetric,
+  right: OverviewMetric | undefined,
+  renderProgressBar: ProgressBarRenderer,
+): void {
+  if (!right) {
+    lines.push(`  <tr><td width="100%"><sub>${left.label}</sub></td></tr>`);
+    lines.push(`  <tr><td><strong>${left.value}</strong></td></tr>`);
+    lines.push(`  <tr><td>${left.footer}</td></tr>`);
+    return;
+  }
+
+  lines.push(
+    `  <tr><td><sub>${left.label}</sub></td><td width="2%" rowspan="3" valign="top">${renderProgressBar.divider()}</td><td><sub>${right.label}</sub></td></tr>`,
+  );
+  lines.push(
+    `  <tr><td><strong>${left.value}</strong></td><td><strong>${right.value}</strong></td></tr>`,
+  );
+  lines.push(`  <tr><td>${left.footer}</td><td>${right.footer}</td></tr>`);
+}
+
+/** Spending-style 2×2 grid: Total / First-party / API / On-demand */
 function buildModernPlanOverview(
   data: Pick<
     UsagePayload,
@@ -52,7 +76,7 @@ function buildModernPlanOverview(
   >,
   renderProgressBar: ProgressBarRenderer,
 ): string {
-  const rows: Array<{ label: string; value: string; footer: string }> = [
+  const rows: OverviewMetric[] = [
     {
       label: "Total",
       value: formatPlanPercent(data.totalPercentUsed ?? 0),
@@ -94,13 +118,9 @@ function buildModernPlanOverview(
     }
   }
 
-  const lines = [
-    `<table width="100%" cellspacing="0" cellpadding="0">`,
-  ];
-  for (const row of rows) {
-    lines.push(`  <tr><td><sub>${row.label}</sub></td></tr>`);
-    lines.push(`  <tr><td><strong>${row.value}</strong></td></tr>`);
-    lines.push(`  <tr><td>${row.footer}</td></tr>`);
+  const lines = [`<table width="100%" cellspacing="0" cellpadding="0">`];
+  for (let i = 0; i < rows.length; i += 2) {
+    appendOverviewPair(lines, rows[i]!, rows[i + 1], renderProgressBar);
   }
   lines.push(`</table>`, ``);
   return lines.join("\n");
