@@ -33,6 +33,11 @@ Ultra / Pro の消化率とオンデマンドをひと目で
   ```
 - **ブレンドモード**: multiply（キー色 `#97cc64` を KV に乗算）
 
+## フィードバック（Airtable）
+
+- 紹介ページ「フィードバック」→ Airtable（`prefill_App=Cursor Usage by tomippe`）
+- App 選択肢は `build.sh` が毎回 `airtable-add-feedback-apps.py` で保証
+
 ## 実施済み
 
 - WordPress 紹介ページ作成（ID: 2402、スラッグ: cursor-usage）

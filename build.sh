@@ -7,6 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 APP_NAME="cursor-usage"
+# 紹介ページ post_title / Airtable「App」単一選択と完全一致
+FEEDBACK_APP_NAME="Cursor Usage by tomippe"
 DIST_DIR="../apps.tomippe.jp/${APP_NAME}"
 OPEN_VSX_URL="https://open-vsx.org/extension/tomippe/cursor-usage"
 
@@ -115,6 +117,18 @@ if [[ ! -f "$SCRIPT_DIR/.env" ]] || ! grep -q '^WP_APP_POST_ID=' "$SCRIPT_DIR/.e
     WP_ARGS+=(--skip-if-missing)
 fi
 python3 "$SCRIPT_DIR/scripts/wp-append-app-version.py" "${WP_ARGS[@]}"
+
+# 紹介ページ「フィードバック」→ Airtable の App 選択肢（未登録だとプリフィル不可）
+echo ""
+echo "📝 Airtable フィードバック App 選択肢を確認中..."
+AIRTABLE_SCRIPT="$SCRIPT_DIR/../build-common/scripts/airtable-add-feedback-apps.py"
+if [[ -f "$AIRTABLE_SCRIPT" ]]; then
+    python3 "$AIRTABLE_SCRIPT" "$FEEDBACK_APP_NAME" || {
+        echo "  ⚠️  Airtable App 選択肢の追加に失敗（ビルドは継続。手動追加: ${FEEDBACK_APP_NAME}）"
+    }
+else
+    echo "  ⚠️  ${AIRTABLE_SCRIPT} がありません"
+fi
 
 # 次回用バージョン
 if ! $NO_VERUP; then

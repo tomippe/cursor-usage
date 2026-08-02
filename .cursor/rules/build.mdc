@@ -17,7 +17,8 @@ alwaysApply: true
   3. Open VSX へアップロード（`scripts/publish-ovsx.sh`。`-noupload` でスキップ）
   4. 紹介ページ用 `manifest.json` 作成 → `../apps.tomippe.jp/cursor-usage/` → FTP
   5. WordPress 紹介ページの `app-versions`（履歴）を先頭に追記
-  6. 版上げ → Git コミット＆プッシュ
+  6. Airtable「アプリフィードバック」の `App` 選択肢に `Cursor Usage by tomippe` を追加（未登録時のみ）
+  7. 版上げ → Git コミット＆プッシュ
 - **配布**: [Open VSX](https://open-vsx.org/extension/tomippe/cursor-usage)
 - **紹介ページ**: `platform: ["web"]` + `app-weburl` に Open VSX URL。テーマが `open-vsx.org` を検出して一覧ラベルを **VSX** にする
 
@@ -53,3 +54,4 @@ alwaysApply: true
 - メモ: `docs/app-page.md`
 - `app-weburl`: Open VSX の拡張ページ
 - `app-webdesc`: `Open VSX<br>日本語,English,中文`（ボタン小ラベル。一覧のプラットフォーム表記はテーマが URL から **VSX**）
+- **フィードバック**: 紹介ページの「フィードバック」→ Airtable。`prefill_App` = 投稿タイトル `Cursor Usage by tomippe`（`build.sh` が毎回 `airtable-add-feedback-apps.py` で選択肢を保証）
