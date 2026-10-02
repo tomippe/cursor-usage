@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import * as vscode from "vscode";
+import { isDisplayCurrencySetting } from "./currency";
 import type { DashboardState } from "./dashboard-state";
 import { getDashboardL10n, Msg, t } from "./i18n";
 import { dashboardLocaleFormatScript, uiLocale } from "./locale";
@@ -43,6 +44,7 @@ export class DashboardPanel {
 
   private readonly panel: vscode.WebviewPanel;
   private readonly disposables: vscode.Disposable[] = [];
+  private readonly assetVersion: string;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -51,7 +53,8 @@ export class DashboardPanel {
     getState: StateProvider,
   ) {
     this.panel = panel;
-    this.panel.webview.html = this.renderHtml(panel.webview, context.extensionUri);
+    this.assetVersion = context.extension.packageJSON.version ?? "0";
+    this.panel.webview.html = this.renderHtml(panel.webview, context.extensionUri, this.assetVersion);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
@@ -68,6 +71,12 @@ export class DashboardPanel {
           } finally {
             this.postLoading(false);
           }
+        } else if (msg.type === "setDisplayCurrency" && isDisplayCurrencySetting(msg.value)) {
+          await vscode.workspace.getConfiguration("cursorUsage").update(
+            "displayCurrency",
+            msg.value,
+            vscode.ConfigurationTarget.Global,
+          );
         }
       },
       null,
@@ -92,13 +101,14 @@ export class DashboardPanel {
     }
   }
 
-  private renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+  private renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri, assetVersion: string): string {
     const mediaUri = (file: string) =>
       webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "dashboard", file));
+    const cacheKey = encodeURIComponent(assetVersion);
 
-    const cssUri = mediaUri("dashboard.css");
-    const jsUri = mediaUri("dashboard.js");
-    const chartUri = mediaUri("chart.umd.js");
+    const cssUri = `${mediaUri("dashboard.css")}?v=${cacheKey}`;
+    const jsUri = `${mediaUri("dashboard.js")}?v=${cacheKey}`;
+    const chartUri = `${mediaUri("chart.umd.js")}?v=${cacheKey}`;
     const nonce = makeNonce();
     const csp = [
       `default-src 'none'`,
@@ -127,6 +137,17 @@ export class DashboardPanel {
     <div class="header-actions">
       <span id="last-updated" class="muted"></span>
       <button id="refresh-btn" type="button">${t(Msg.refresh)}</button>
+      <label class="currency-select-label">
+        <span class="currency-select-text">${t(Msg.currency)}</span>
+        <select id="currency-select" aria-label="${t(Msg.currency)}">
+          <option value="auto">${t(Msg.currencyAuto)}</option>
+          <option value="usd">USD</option>
+          <option value="eur">EUR</option>
+          <option value="jpy">JPY</option>
+          <option value="gbp">GBP</option>
+          <option value="cny">CNY</option>
+        </select>
+      </label>
     </div>
   </header>
 

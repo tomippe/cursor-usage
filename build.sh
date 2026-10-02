@@ -37,6 +37,10 @@ if [[ -f "$HOME/.ovsx-env" ]]; then
     # shellcheck source=/dev/null
     source "$HOME/.ovsx-env"
 fi
+if [[ -f "$HOME/Secrets/open-vsx.env" ]]; then
+    # shellcheck source=/dev/null
+    source "$HOME/Secrets/open-vsx.env"
+fi
 if [[ -f "$SCRIPT_DIR/.env" ]]; then
     # shellcheck source=/dev/null
     source "$SCRIPT_DIR/.env"

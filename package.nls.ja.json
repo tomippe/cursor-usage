@@ -30,5 +30,12 @@
   "config.modelBreakdownSortOrder.enum.asc": "昇順",
   "config.modelBreakdownSortOrder.enum.desc": "降順",
   "config.excludeZeroTokenModels.description": "トークン使用量が0の行をモデル別テーブルで非表示にする",
-  "config.quotaAwareEventDisplay.description": "ダッシュボードで定額内をリクエスト、追加従量分を支出として表示する（全イベントに生のリクエスト/支出を出さない）"
+  "config.quotaAwareEventDisplay.description": "ダッシュボードで定額内をリクエスト、追加従量分を支出として表示する（全イベントに生のリクエスト/支出を出さない）",
+  "config.displayCurrency.description": "支出の表示通貨。自動は表示言語に合わせます（日本語→円、中国語→人民元、それ以外→米ドル）。",
+  "config.displayCurrency.enum.auto": "自動",
+  "config.displayCurrency.enum.usd": "USD",
+  "config.displayCurrency.enum.eur": "EUR",
+  "config.displayCurrency.enum.jpy": "JPY",
+  "config.displayCurrency.enum.gbp": "GBP",
+  "config.displayCurrency.enum.cny": "CNY"
 }

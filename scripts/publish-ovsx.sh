@@ -7,6 +7,10 @@ if [[ -f "$HOME/.ovsx-env" ]]; then
   # shellcheck disable=SC1091
   source "$HOME/.ovsx-env"
 fi
+if [[ -f "$HOME/Secrets/open-vsx.env" ]]; then
+  # shellcheck disable=SC1091
+  source "$HOME/Secrets/open-vsx.env"
+fi
 if [[ -f "$ROOT/.env" ]]; then
   # shellcheck disable=SC1091
   source "$ROOT/.env"
@@ -17,7 +21,7 @@ if [[ -z "${OPEN_VSX_TOKEN:-}" ]]; then
   echo "1) https://open-vsx.org に GitHub でログイン"
   echo "2) Eclipse 連携 + Publisher Agreement に同意"
   echo "3) https://open-vsx.org/user-settings/tokens でトークン作成"
-  echo "4) ~/.ovsx-env または .env に OPEN_VSX_TOKEN=... を書く"
+  echo "4) ~/.ovsx-env、~/Secrets/open-vsx.env、または .env に OPEN_VSX_TOKEN=... を書く"
   exit 1
 fi
 

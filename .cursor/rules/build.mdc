@@ -46,8 +46,19 @@ alwaysApply: true
 | Extension ID | `tomippe.cursor-usage` |
 | Open VSX | `https://open-vsx.org/extension/tomippe/cursor-usage` |
 | ローカル配布 | `../apps.tomippe.jp/cursor-usage/manifest.json`（`version` / `vsx_version`） |
-| 認証 | `~/.ovsx-env` の `OPEN_VSX_TOKEN`、`~/.wp-env` + `.env` の `WP_APP_POST_ID` |
+| 認証 | `~/Secrets/open-vsx.env`（または `~/.ovsx-env`）の `OPEN_VSX_TOKEN`、`~/.wp-env` + `.env` の `WP_APP_POST_ID` |
 | Marketplace | `npm run publish:vsm`（任意・別系統。フルビルドには含めない） |
+
+## 初公開チェックリスト（必須）
+
+**Open VSX / 紹介ページの初回公開前に、少なくとも一度 `./build.sh -cm "…"` を通す**（`-noupload` 可）。手元の VSIX 直インストールだけでは Airtable は更新されない。
+
+1. **Airtable App 選択肢** — `FEEDBACK_APP_NAME`（`Cursor Usage by tomippe`）が未登録なら `build.sh` 内の `airtable-add-feedback-apps.py` で追加。紹介ページ `prefill_App` と **WP 投稿タイトルと完全一致**させる。
+2. 単体確認: `python3 ../build-common/scripts/airtable-add-feedback-apps.py "Cursor Usage by tomippe"` → 「登録済み」または追加成功。
+3. `build-common/scripts/airtable-add-feedback-apps.py` の `APP_PLATFORM` に VSIX 色（`"Cursor Usage by tomippe": "vsix"`）があること。初回登録後、色が gray のままなら `--sync-colors`（フィールド再作成のため要判断）。
+4. 紹介ページ・`.env`・Open VSX 公開は `docs/app-page.md` のとおり。
+
+以降のフルビルドでも **手順 6（Airtable 確認）は毎回** 実行される。
 
 ## 紹介ページ
 

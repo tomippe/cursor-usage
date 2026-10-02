@@ -40,6 +40,7 @@
     breakdownRangeLabel: document.getElementById("breakdown-range-label"),
     pagination: document.getElementById("pagination"),
     refreshBtn: document.getElementById("refresh-btn"),
+    currencySelect: document.getElementById("currency-select"),
     exportBtn: document.getElementById("export-csv"),
     lastUpdated: document.getElementById("last-updated"),
     errorBanner: document.getElementById("error-banner"),
@@ -141,8 +142,50 @@
     return String(Math.round(n));
   }
 
-  function formatDollars(n) {
+  function moneyDisplay() {
+    const currency = (state && state.displayCurrency) || "usd";
+    const rate = state && Object.prototype.hasOwnProperty.call(state, "exchangeRate")
+      ? state.exchangeRate
+      : 1;
+    return { currency: currency, rate: rate };
+  }
+
+  function formatUsd(n) {
     return "$" + (n || 0).toFixed(2);
+  }
+
+  function formatPrimaryAmount(dollars) {
+    const m = moneyDisplay();
+    if (m.currency === "usd" || m.rate == null) return formatUsd(dollars);
+    const local = (dollars || 0) * m.rate;
+    if (m.currency === "eur") return "€" + local.toFixed(2);
+    if (m.currency === "gbp") return "£" + local.toFixed(2);
+    if (m.currency === "jpy") return "¥" + Math.round(local);
+    if (m.currency === "cny") return Math.round(local) + "元";
+    return formatUsd(dollars);
+  }
+
+  function formatDollars(n) {
+    return formatPrimaryAmount(n);
+  }
+
+  function formatAmountPair(spend, limit) {
+    const spendText = formatPrimaryAmount(spend);
+    if (limit == null) return spendText;
+    return spendText + " / " + formatPrimaryAmount(limit);
+  }
+
+  function formatAmountPairHtml(spend, limit) {
+    const primary = formatAmountPair(spend, limit);
+    const m = moneyDisplay();
+    if (m.currency === "usd" || m.rate == null) return primary;
+    const usd = limit == null ? formatUsd(spend) : formatUsd(spend) + " / " + formatUsd(limit);
+    return (
+      '<div class="card-value-split">' +
+        '<span class="card-value-primary">' + primary + "</span>" +
+        '<span class="card-value-usd">' + usd + "</span>" +
+      "</div>"
+    );
   }
 
   function toMillis(ts) {
@@ -248,11 +291,11 @@
     if (onDemand.state === "disabled") return "";
     let valText, footerText, ratio;
     if (onDemand.state === "unlimited") {
-      valText = formatDollars(onDemand.spendDollars);
+      valText = formatAmountPairHtml(onDemand.spendDollars, null);
       footerText = l10n("unlimited");
       ratio = 0;
     } else {
-      valText = formatDollars(onDemand.spendDollars) + " / " + formatDollars(onDemand.limitDollars || 0);
+      valText = formatAmountPairHtml(onDemand.spendDollars, onDemand.limitDollars || 0);
       ratio = onDemand.limitDollars > 0 ? Math.min(1, onDemand.spendDollars / onDemand.limitDollars) : 0;
       footerText = l10n("payForExtraUsage");
     }
@@ -287,13 +330,13 @@
           ),
         );
       }
+      const onDemandCard = renderOnDemandCard(onDemand);
+      if (onDemandCard) parts.push(onDemandCard);
       if (apiPercentUsed !== null && apiPercentUsed !== undefined) {
         parts.push(
           summaryCardHtml(l10n("api"), formatPlanPercent(apiPercentUsed), percentBarWidth(apiPercentUsed), ""),
         );
       }
-      const onDemandCard = renderOnDemandCard(onDemand);
-      if (onDemandCard) parts.push(onDemandCard);
       ui.summaryCards.innerHTML = parts.join("");
       return;
     }
@@ -772,6 +815,9 @@
     ui.usageFilter.value = local.usageFilter;
     ui.metricFilter.value = local.metric;
     applyTeamMemberConstraints();
+    if (ui.currencySelect && state.displayCurrencySetting) {
+      ui.currencySelect.value = state.displayCurrencySetting;
+    }
     renderSummaryCards();
     renderChart();
     renderBreakdown();
@@ -839,6 +885,12 @@
   ui.refreshBtn.addEventListener("click", () => {
     vscode.postMessage({ type: "refresh" });
   });
+
+  if (ui.currencySelect) {
+    ui.currencySelect.addEventListener("change", () => {
+      vscode.postMessage({ type: "setDisplayCurrency", value: ui.currencySelect.value });
+    });
+  }
 
   ui.exportBtn.addEventListener("click", exportCsv);
 

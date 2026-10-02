@@ -8,7 +8,7 @@ const progressBar = {
 };
 
 describe("buildUsageOverviewMarkdown", () => {
-  it("renders Spending-style Total / First-party / API / On-demand for modern plans", () => {
+  it("renders Spending-style Total / First-party / On-demand / API for modern plans", () => {
     const markdown = buildUsageOverviewMarkdown(
       {
         planName: "Ultra",
@@ -32,9 +32,9 @@ describe("buildUsageOverviewMarkdown", () => {
     expect(markdown).toContain("<bar:0.16>");
     expect(markdown).toContain("<bar:0.20>");
     expect(markdown).toContain("<bar:0.01>");
-    // 2×2 grid: Total | First-party, then API | On-demand
+    // 2×2 grid: Total | First-party, then On-demand | API
     expect(markdown).toContain("<td><sub>Total</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>First-party models</sub></td>");
-    expect(markdown).toContain("<td><sub>API</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>On-demand</sub></td>");
+    expect(markdown).toContain("<td><sub>On-demand</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>API</sub></td>");
     expect(markdown).not.toContain("Included");
     expect(markdown).not.toContain("0 / 0");
   });
@@ -93,6 +93,24 @@ describe("buildUsageOverviewMarkdown", () => {
     expect(markdown).toContain("<strong>42 / 500</strong>");
     expect(markdown).toContain("<bar:0.08>");
     expect(markdown).not.toContain("On-demand");
+  });
+
+  it("formats on-demand spend in the selected currency and keeps the used percent", () => {
+    const markdown = buildUsageOverviewMarkdown(
+      {
+        includedRequests: { used: 0, limit: 0 },
+        onDemand: { state: "limited", spendDollars: 12.5, limitDollars: 40 },
+        totalPercentUsed: 16,
+        autoPercentUsed: 20,
+        apiPercentUsed: 1,
+      },
+      progressBar,
+      { currency: "jpy", rate: 150 },
+    );
+
+    expect(markdown).toContain("<strong>16%</strong>");
+    expect(markdown).toContain("<strong>¥1875 / ¥6000 ($12.50 / $40.00)</strong>");
+    expect(markdown).toContain("<td><sub>On-demand</sub></td><td width=\"2%\" rowspan=\"3\" valign=\"top\"><divider /></td><td><sub>API</sub></td>");
   });
 });
 

@@ -38,6 +38,9 @@ describe("buildDashboardState", () => {
     expect(state.quotaAwareEventDisplay).toBeTrue();
     expect(state.error).toBeNull();
     expect(state.resetsAt).toBeNull();
+    expect(state.displayCurrencySetting).toBe("auto");
+    expect(state.displayCurrency).toBe("usd");
+    expect(state.exchangeRate).toBe(1);
   });
 
   it("propagates resetsAt from data", () => {

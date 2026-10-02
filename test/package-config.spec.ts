@@ -69,6 +69,14 @@ describe("package configuration", () => {
     expect(quotaAwareConfig.type).toBe("boolean");
   });
 
+  it("exposes a display-currency setting that defaults to auto", () => {
+    const currencyConfig = packageJson.contributes.configuration.properties["cursorUsage.displayCurrency"];
+
+    expect(currencyConfig.default).toBe("auto");
+    expect(currencyConfig.enum).toEqual(["auto", "usd", "eur", "jpy", "gbp", "cny"]);
+    expect(packageNls["config.displayCurrency.enum.auto"]).toBe("Auto");
+  });
+
   it("does not depend on external sqlite binaries or native bindings", () => {
     const vscodeIgnore = readFileSync(".vscodeignore", "utf-8").split(/\r?\n/);
     const esbuildConfig = readFileSync("esbuild.config.mjs", "utf-8");

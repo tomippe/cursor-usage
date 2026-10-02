@@ -37,6 +37,8 @@ Ultra / Pro の消化率とオンデマンドをひと目で
 
 - 紹介ページ「フィードバック」→ Airtable（`prefill_App=Cursor Usage by tomippe`）
 - App 選択肢は `build.sh` が毎回 `airtable-add-feedback-apps.py` で保証
+- **初公開時必須**: 初回の `./build.sh -cm "…"` 前後で選択肢があることを確認（未登録だとプリフィル不可）。手動: `python3 ../build-common/scripts/airtable-add-feedback-apps.py "Cursor Usage by tomippe"`
+- **登録済み（2026-10）**: Airtable `App` に `Cursor Usage by tomippe` あり
 
 ## 実施済み
 

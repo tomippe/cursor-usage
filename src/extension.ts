@@ -9,6 +9,16 @@ import {
   type UsagePayload,
   type UsageEvent,
 } from "./cursor-api";
+import {
+  fetchUsdRate,
+  formatAmountPair,
+  formatAmountWithUsd,
+  formatCents,
+  isDisplayCurrencySetting,
+  resolveDisplayCurrency,
+  type DisplayCurrencySetting,
+  type MoneyDisplay,
+} from "./currency";
 import { DashboardPanel, OPEN_DASHBOARD_COMMAND } from "./dashboard-panel";
 import { buildDashboardState, type DashboardState } from "./dashboard-state";
 import {
@@ -19,11 +29,14 @@ import { formatTokens } from "./format";
 import {
   aggregateByModel,
   filterZeroTokenModels,
-  formatDollarsFromCents,
   type ModelBreakdownSortBy,
   type SortOrder,
   type UsageDuration,
 } from "./model-breakdown";
+import {
+  formatModernStatusBarText,
+  hasModernPlanUsage,
+} from "./status-bar";
 import {
   buildUsageByModelHeadingMarkdown,
   buildUsageOverviewMarkdown,
@@ -39,8 +52,12 @@ let lastFetchTime = 0;
 let isFetching = false;
 let lastEvents: UsageEvent[] | null = null;
 let lastDailySpend: DailySpendRow[] | null = null;
+let lastMoney: MoneyDisplay = { currency: "usd", rate: 1 };
+let lastMoneySetting: DisplayCurrencySetting = "auto";
+let lastMoneyFetchedAt = 0;
 
 const DEBOUNCE_MS = 30_000;
+const EXCHANGE_RATE_TTL_MS = 6 * 60 * 60 * 1000;
 
 function log(msg: string) {
   const ts = new Date().toISOString().slice(11, 19);
@@ -59,7 +76,30 @@ function getConfig() {
     modelBreakdownSortOrder,
     excludeZeroTokenModels: cfg.get<boolean>("excludeZeroTokenModels", false),
     quotaAwareEventDisplay: cfg.get<boolean>("quotaAwareEventDisplay", true),
+    displayCurrency: readDisplayCurrencySetting(cfg.get("displayCurrency")),
   };
+}
+
+function readDisplayCurrencySetting(value: unknown): DisplayCurrencySetting {
+  return isDisplayCurrencySetting(value) ? value : "auto";
+}
+
+async function ensureMoney(force = false): Promise<MoneyDisplay> {
+  lastMoneySetting = getConfig().displayCurrency;
+  const currency = resolveDisplayCurrency(lastMoneySetting, uiLocale());
+  const fresh =
+    !force
+    && lastMoney.currency === currency
+    && Date.now() - lastMoneyFetchedAt < EXCHANGE_RATE_TTL_MS
+    && (currency === "usd" || lastMoney.rate !== null);
+  if (fresh) {
+    lastMoney = { currency, rate: lastMoney.rate };
+    return lastMoney;
+  }
+  const rate = currency === "usd" ? 1 : await fetchUsdRate(currency);
+  lastMoney = { currency, rate };
+  lastMoneyFetchedAt = Date.now();
+  return lastMoney;
 }
 
 function getCooldownMs(): number {
@@ -174,7 +214,7 @@ function buildModelBreakdownTableMarkdown(
       `<td align="left">${escapeHtml(row.model)}</td>` +
       `<td align="right">${Math.round(row.requests)}</td>` +
       `<td align="right">${formatTokens(row.totalTokens)}</td>` +
-      `<td align="right">${formatDollarsFromCents(row.spendCents)}</td>` +
+      `<td align="right">${formatCents(row.spendCents, lastMoney)}</td>` +
       `</tr>`,
     );
   }
@@ -194,10 +234,8 @@ function getOnDemandRatio(onDemand: OnDemandUsage): number | null {
 }
 
 function formatOnDemandStatus(onDemand: OnDemandUsage): string {
-  if (onDemand.state === "unlimited") {
-    return `$${onDemand.spendDollars.toFixed(2)}`;
-  }
-  return `$${onDemand.spendDollars.toFixed(2)}/$${(onDemand.limitDollars ?? 0).toFixed(2)}`;
+  const limit = onDemand.state === "limited" ? (onDemand.limitDollars ?? 0) : null;
+  return formatAmountPair(onDemand.spendDollars, limit, lastMoney.currency, lastMoney.rate);
 }
 
 function formatPlanPercent(totalPercentUsed: number): string {
@@ -216,12 +254,12 @@ function formatIncludedStatus(data: UsagePayload): string {
 }
 
 function formatOnDemandTooltipCell(onDemand: OnDemandUsage): string {
-  if (onDemand.state === "unlimited") {
-    return `$${onDemand.spendDollars.toFixed(2)}`;
-  }
+  const limit = onDemand.state === "limited" ? (onDemand.limitDollars ?? 0) : null;
+  const amount = formatAmountWithUsd(onDemand.spendDollars, limit, lastMoney);
+  if (onDemand.state === "unlimited") return amount;
   const ratio = getOnDemandRatio(onDemand);
   const pct = ratio === null ? 0 : Math.round(ratio * 100);
-  return `$${onDemand.spendDollars.toFixed(2)} / $${(onDemand.limitDollars ?? 0).toFixed(2)} (${pct}%)`;
+  return `${amount} (${pct}%)`;
 }
 
 function updateStatusBar(data: UsagePayload) {
@@ -233,18 +271,32 @@ function updateStatusBar(data: UsagePayload) {
       ? data.totalPercentUsed >= 100
       : includedRequests.limit > 0 && includedRequests.used >= includedRequests.limit;
   const onDemandVisible = isOnDemandVisible(onDemand);
-  const includedText = formatIncludedStatus(data);
-  const planPrefix = planName ? `${planName} | ` : "";
+  const modernPlan = hasModernPlanUsage(data);
 
-  if (minimalMode) {
-    if (premiumExhausted && onDemandVisible && data.totalPercentUsed === null) {
+  if (modernPlan) {
+    const body = formatModernStatusBarText(
+      planName,
+      data.totalPercentUsed!,
+      data.autoPercentUsed,
+      data.apiPercentUsed,
+      onDemand,
+      onDemandVisible && !minimalMode,
+      lastMoney,
+    );
+    statusBarItem.text = `$(pulse) ${body}`;
+  } else if (minimalMode) {
+    const includedText = formatIncludedStatus(data);
+    const planPrefix = planName?.trim() ? `${planName.trim()} ` : "";
+    if (premiumExhausted && onDemandVisible) {
       statusBarItem.text = `$(pulse) ${planPrefix}${formatOnDemandStatus(onDemand)}`;
     } else {
       statusBarItem.text = `$(pulse) ${planPrefix}${includedText}`;
     }
   } else {
+    const includedText = formatIncludedStatus(data);
+    const planPrefix = planName?.trim() ? `${planName.trim()} ` : "";
     statusBarItem.text = onDemandVisible
-      ? `$(pulse) ${planPrefix}${includedText} | ${formatOnDemandStatus(onDemand)}`
+      ? `$(pulse) ${planPrefix}${includedText} ${formatOnDemandStatus(onDemand)}`
       : `$(pulse) ${planPrefix}${includedText}`;
   }
 
@@ -273,6 +325,7 @@ function updateStatusBar(data: UsagePayload) {
       html: (ratio) => progressBarHtml(ratio, barW),
       divider: () => summaryDividerHtml(),
     },
+    lastMoney,
   );
   md += `\n`;
 
@@ -320,6 +373,7 @@ async function updateUsage() {
       fetchUsageEvents(),
       fetchDailySpendByCategory(),
     ]);
+    await ensureMoney();
 
     if (eventsResult.status === "fulfilled") {
       lastEvents = eventsResult.value;
@@ -390,8 +444,6 @@ async function showDetails() {
 
   const { includedRequests, onDemand, resetsAt, totalPercentUsed, autoPercentUsed, apiPercentUsed } =
     lastData;
-  const spendRatio = getOnDemandRatio(onDemand);
-  const spendPct = spendRatio === null ? null : Math.round(spendRatio * 100);
   const onDemandVisible = isOnDemandVisible(onDemand);
 
   let message: string;
@@ -408,9 +460,7 @@ async function showDetails() {
     message = t(Msg.requestsSummary, includedRequests.used, includedRequests.limit, reqPct);
   }
   if (onDemandVisible) {
-    const spendText = onDemand.state === "unlimited"
-      ? `$${onDemand.spendDollars.toFixed(2)}`
-      : `$${onDemand.spendDollars.toFixed(2)}/$${(onDemand.limitDollars ?? 0).toFixed(2)} (${spendPct ?? 0}%)`;
+    const spendText = formatOnDemandTooltipCell(onDemand);
     message += ` | ${t(Msg.onDemandSummary, spendText)}`;
   }
   if (resetsAt) message += ` | ${formatResetDate(resetsAt)}`;
@@ -443,6 +493,11 @@ function getDashboardState(): DashboardState {
     lastError,
     Date.now(),
     getConfig().quotaAwareEventDisplay,
+    {
+      setting: lastMoneySetting,
+      currency: lastMoney.currency,
+      rate: lastMoney.rate,
+    },
   );
 }
 
@@ -465,7 +520,11 @@ export function activate(context: vscode.ExtensionContext) {
     DashboardPanel.currentPanel?.postState(getDashboardState());
   });
 
-  const configListener = vscode.workspace.onDidChangeConfiguration((e) => {
+  const configListener = vscode.workspace.onDidChangeConfiguration(async (e) => {
+    if (!e.affectsConfiguration("cursorUsage")) return;
+    if (e.affectsConfiguration("cursorUsage.displayCurrency")) {
+      await ensureMoney(true);
+    }
     if (
       lastData
       && (e.affectsConfiguration("cursorUsage.minimalMode")
@@ -473,7 +532,8 @@ export function activate(context: vscode.ExtensionContext) {
         || e.affectsConfiguration("cursorUsage.modelBreakdownSortBy")
         || e.affectsConfiguration("cursorUsage.modelBreakdownSortOrder")
         || e.affectsConfiguration("cursorUsage.excludeZeroTokenModels")
-        || e.affectsConfiguration("cursorUsage.quotaAwareEventDisplay"))
+        || e.affectsConfiguration("cursorUsage.quotaAwareEventDisplay")
+        || e.affectsConfiguration("cursorUsage.displayCurrency"))
     ) {
       updateStatusBar(lastData);
       DashboardPanel.currentPanel?.postState(getDashboardState());

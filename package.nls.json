@@ -30,5 +30,12 @@
   "config.modelBreakdownSortOrder.enum.asc": "Ascending",
   "config.modelBreakdownSortOrder.enum.desc": "Descending",
   "config.excludeZeroTokenModels.description": "Hide rows in the usage-by-model table where token usage is zero.",
-  "config.quotaAwareEventDisplay.description": "In the dashboard, show included usage as requests and on-demand usage as spend instead of showing raw request and spend values for every event."
+  "config.quotaAwareEventDisplay.description": "In the dashboard, show included usage as requests and on-demand usage as spend instead of showing raw request and spend values for every event.",
+  "config.displayCurrency.description": "Currency for spend amounts. Auto follows the display language (Japanese→JPY, Chinese→CNY, otherwise USD).",
+  "config.displayCurrency.enum.auto": "Auto",
+  "config.displayCurrency.enum.usd": "USD",
+  "config.displayCurrency.enum.eur": "EUR",
+  "config.displayCurrency.enum.jpy": "JPY",
+  "config.displayCurrency.enum.gbp": "GBP",
+  "config.displayCurrency.enum.cny": "CNY"
 }

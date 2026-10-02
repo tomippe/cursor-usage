@@ -30,5 +30,12 @@
   "config.modelBreakdownSortOrder.enum.asc": "升序",
   "config.modelBreakdownSortOrder.enum.desc": "降序",
   "config.excludeZeroTokenModels.description": "在按模型统计表中隐藏Token使用量为0的行",
-  "config.quotaAwareEventDisplay.description": "在仪表盘中将Included显示为请求数、On-demand显示为支出（而不是每个事件都显示原始请求/支出）"
+  "config.quotaAwareEventDisplay.description": "在仪表盘中将Included显示为请求数、On-demand显示为支出（而不是每个事件都显示原始请求/支出）",
+  "config.displayCurrency.description": "支出金额的显示货币。自动跟随界面语言（日语→日元，中文→人民币，其他→美元）。",
+  "config.displayCurrency.enum.auto": "自动",
+  "config.displayCurrency.enum.usd": "USD",
+  "config.displayCurrency.enum.eur": "EUR",
+  "config.displayCurrency.enum.jpy": "JPY",
+  "config.displayCurrency.enum.gbp": "GBP",
+  "config.displayCurrency.enum.cny": "CNY"
 }

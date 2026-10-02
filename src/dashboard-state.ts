@@ -1,4 +1,5 @@
 import type { DailySpendRow, UsageEvent, UsagePayload } from "./cursor-api";
+import type { DisplayCurrency, DisplayCurrencySetting } from "./currency";
 import { getDurationCutoff, type UsageDuration } from "./model-breakdown";
 
 export type ChartMetric = "spend" | "tokens" | "requests";
@@ -23,6 +24,9 @@ export type DashboardState = {
   isTeamMember: boolean;
   quotaAwareEventDisplay: boolean;
   error: string | null;
+  displayCurrencySetting: DisplayCurrencySetting;
+  displayCurrency: DisplayCurrency;
+  exchangeRate: number | null;
 };
 
 const DAY_MS = 86_400_000;
@@ -58,6 +62,11 @@ export function buildDashboardState(
   error: string | null,
   now: number,
   quotaAwareEventDisplay = true,
+  money?: {
+    setting: DisplayCurrencySetting;
+    currency: DisplayCurrency;
+    rate: number | null;
+  },
 ): DashboardState {
   return {
     generatedAt: now,
@@ -68,6 +77,9 @@ export function buildDashboardState(
     isTeamMember,
     quotaAwareEventDisplay,
     error,
+    displayCurrencySetting: money?.setting ?? "auto",
+    displayCurrency: money?.currency ?? "usd",
+    exchangeRate: money?.rate ?? 1,
   };
 }
 

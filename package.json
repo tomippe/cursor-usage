@@ -1,6 +1,6 @@
 {
   "name": "cursor-usage",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "l10n": "./l10n",
   "repository": {
     "type": "git",
@@ -123,6 +123,27 @@
           "type": "boolean",
           "default": true,
           "description": "%config.quotaAwareEventDisplay.description%"
+        },
+        "cursorUsage.displayCurrency": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "usd",
+            "eur",
+            "jpy",
+            "gbp",
+            "cny"
+          ],
+          "enumItemLabels": [
+            "%config.displayCurrency.enum.auto%",
+            "%config.displayCurrency.enum.usd%",
+            "%config.displayCurrency.enum.eur%",
+            "%config.displayCurrency.enum.jpy%",
+            "%config.displayCurrency.enum.gbp%",
+            "%config.displayCurrency.enum.cny%"
+          ],
+          "description": "%config.displayCurrency.description%"
         }
       }
     }

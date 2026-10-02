@@ -1,4 +1,5 @@
 import type { UsagePayload } from "./cursor-api";
+import { formatAmountWithUsd, type MoneyDisplay } from "./currency";
 import { getDurationLabel } from "./duration-options";
 import { Msg, t } from "./i18n";
 import type { UsageDuration } from "./model-breakdown";
@@ -27,11 +28,10 @@ function getOnDemandRatio(onDemand: OnDemandUsage): number | null {
   return onDemand.spendDollars / onDemand.limitDollars;
 }
 
-function formatOnDemandValue(onDemand: OnDemandUsage): string {
-  if (onDemand.state === "unlimited") {
-    return `$${onDemand.spendDollars.toFixed(2)}`;
-  }
-  return `$${onDemand.spendDollars.toFixed(2)} / $${(onDemand.limitDollars ?? 0).toFixed(2)}`;
+function formatOnDemandValue(onDemand: OnDemandUsage, money?: MoneyDisplay): string {
+  const display = money ?? { currency: "usd" as const, rate: 1 };
+  const limit = onDemand.state === "limited" ? onDemand.limitDollars : null;
+  return formatAmountWithUsd(onDemand.spendDollars, limit, display);
 }
 
 function percentRatio(percent: number | null | undefined): number {
@@ -69,13 +69,14 @@ function appendOverviewPair(
   lines.push(`  <tr><td>${left.footer}</td><td>${right.footer}</td></tr>`);
 }
 
-/** Spending-style 2×2 grid: Total / First-party / API / On-demand */
+/** Spending-style 2×2 grid: Total / First-party / On-demand / API */
 function buildModernPlanOverview(
   data: Pick<
     UsagePayload,
     "totalPercentUsed" | "autoPercentUsed" | "apiPercentUsed" | "onDemand"
   >,
   renderProgressBar: ProgressBarRenderer,
+  money?: MoneyDisplay,
 ): string {
   const rows: OverviewMetric[] = [
     {
@@ -93,32 +94,32 @@ function buildModernPlanOverview(
     });
   }
 
-  if (data.apiPercentUsed !== null && data.apiPercentUsed !== undefined) {
-    rows.push({
-      label: t(Msg.api),
-      value: formatPlanPercent(data.apiPercentUsed),
-      footer: renderProgressBar.html(percentRatio(data.apiPercentUsed)),
-    });
-  }
-
   if (data.onDemand.state !== "disabled") {
     if (data.onDemand.state === "unlimited") {
       rows.push({
         label: t(Msg.onDemand),
-        value: formatOnDemandValue(data.onDemand),
+        value: formatOnDemandValue(data.onDemand, money),
         footer: `<sub>${t(Msg.unlimited)}</sub>`,
       });
     } else {
       const spendRatio = getOnDemandRatio(data.onDemand);
       rows.push({
         label: t(Msg.onDemand),
-        value: formatOnDemandValue(data.onDemand),
+        value: formatOnDemandValue(data.onDemand, money),
         footer:
           spendRatio === null
             ? `<sub>${t(Msg.spendUnavailable)}</sub>`
             : renderProgressBar.html(spendRatio),
       });
     }
+  }
+
+  if (data.apiPercentUsed !== null && data.apiPercentUsed !== undefined) {
+    rows.push({
+      label: t(Msg.api),
+      value: formatPlanPercent(data.apiPercentUsed),
+      footer: renderProgressBar.html(percentRatio(data.apiPercentUsed)),
+    });
   }
 
   const lines = [`<table width="100%" cellspacing="0" cellpadding="0">`];
@@ -133,6 +134,7 @@ function buildModernPlanOverview(
 function buildLegacyRequestOverview(
   data: Pick<UsagePayload, "includedRequests" | "onDemand">,
   renderProgressBar: ProgressBarRenderer,
+  money?: MoneyDisplay,
 ): string {
   const { includedRequests, onDemand } = data;
   const reqRatio = includedRequests.limit > 0 ? includedRequests.used / includedRequests.limit : 0;
@@ -148,7 +150,7 @@ function buildLegacyRequestOverview(
     ].join("\n");
   }
 
-  const onDemandValue = formatOnDemandValue(onDemand);
+  const onDemandValue = formatOnDemandValue(onDemand, money);
   const onDemandFooter =
     onDemand.state === "unlimited"
       ? `<sub>${t(Msg.unlimited)}</sub>`
@@ -175,11 +177,12 @@ export function buildUsageOverviewMarkdown(
     "includedRequests" | "onDemand" | "totalPercentUsed" | "autoPercentUsed" | "apiPercentUsed"
   >,
   renderProgressBar: ProgressBarRenderer,
+  money?: MoneyDisplay,
 ): string {
   if (hasModernPlanUsage(data)) {
-    return buildModernPlanOverview(data, renderProgressBar);
+    return buildModernPlanOverview(data, renderProgressBar, money);
   }
-  return buildLegacyRequestOverview(data, renderProgressBar);
+  return buildLegacyRequestOverview(data, renderProgressBar, money);
 }
 
 export function buildUsageByModelHeadingMarkdown(duration: UsageDuration): string {
