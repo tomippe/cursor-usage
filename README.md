@@ -9,7 +9,7 @@
 ## English
 
 **Official page:** [apps.tomippe.jp/cursor-usage](https://apps.tomippe.jp/cursor-usage/)  
-Repository: [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage)
+**Open source (MIT):** [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage) — public repository; use, modify, and redistribute freely (see `LICENSE`).
 
 Fork of [wrick17/cursor-metrics](https://github.com/wrick17/cursor-metrics) (MIT).
 
@@ -50,7 +50,7 @@ MIT — see `LICENSE`.
 ## 日本語
 
 **公式ページ:** [apps.tomippe.jp/cursor-usage](https://apps.tomippe.jp/cursor-usage/)  
-リポジトリ: [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage)
+**オープンソース（MIT）:** [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage) — 公開リポジトリ。改変・再配布を含め自由に利用できます（`LICENSE` 参照）。
 
 [wrick17/cursor-metrics](https://github.com/wrick17/cursor-metrics) のフォーク（MIT）。
 
@@ -91,7 +91,7 @@ MIT — `LICENSE` を参照。
 ## 中文
 
 **官方页面:** [apps.tomippe.jp/cursor-usage](https://apps.tomippe.jp/cursor-usage/)  
-仓库: [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage)
+**开源（MIT）:** [tomippe/cursor-usage](https://github.com/tomippe/cursor-usage) — 公开仓库，可自由修改与再分发（见 `LICENSE`）。
 
 [wrick17/cursor-metrics](https://github.com/wrick17/cursor-metrics) 的分支（MIT）。
 

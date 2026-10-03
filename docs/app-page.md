@@ -5,6 +5,11 @@
 Cursor のプラン使用量をステータスバーで
 Ultra / Pro の消化率とオンデマンドをひと目で
 
+## オープンソース
+
+- **リポジトリ**: https://github.com/tomippe/cursor-usage（**公開** / MIT — 改変・再配布自由）
+- 紹介ページ本文に GitHub リンク段落あり（2026-10 追記）
+
 ## Open VSX
 
 - **app-weburl**: https://open-vsx.org/extension/tomippe/cursor-usage
