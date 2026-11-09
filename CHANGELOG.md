@@ -8,6 +8,12 @@ Cursor Usage by tomippe — fork of [wrick17/cursor-metrics](https://github.com/
 
 ## English
 
+### [1.1.0] - 2026-11-10
+
+#### Fixed
+- Usage loads again after the Cursor update that stores the sign-in token in a new format, on both Mac and Windows
+- Older Cursor versions that still store a plain token keep working
+
 ### [1.0.4] - 2026-07-16
 
 #### Changed
@@ -51,6 +57,12 @@ Cursor Usage by tomippe — fork of [wrick17/cursor-metrics](https://github.com/
 
 ## 日本語
 
+### [1.1.0] - 2026-11-10
+
+#### Fixed
+- Cursor のアップデート後も使用量を表示（Mac と Windows）
+- 以前の保存形式の Cursor でも、これまでどおり使用量を表示
+
 ### [1.0.4] - 2026-07-16
 
 #### Changed
@@ -93,6 +105,12 @@ Cursor Usage by tomippe — fork of [wrick17/cursor-metrics](https://github.com/
 <a id="changelog-zh"></a>
 
 ## 中文
+
+### [1.1.0] - 2026-11-10
+
+#### Fixed
+- Cursor 更新后仍能显示使用量（Mac 与 Windows）
+- 仍使用旧保存格式的 Cursor 也能照常显示使用量
 
 ### [1.0.4] - 2026-07-16
 

@@ -1,6 +1,7 @@
 import { closeSync, existsSync, fstatSync, openSync, readSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
+import { CURSOR_SAFE_STORAGE_PREFIX, resolveCursorAccessToken, userIdFromJwt } from "./cursor-safe-storage";
 
 export type UsagePayload = {
   /** Display name from Stripe membership, e.g. Ultra / Pro. */
@@ -369,15 +370,32 @@ async function getCursorToken(): Promise<AuthInfo | null> {
     return null;
   }
 
-  const jwt = authValues["cursorAuth/accessToken"] ?? null;
-  if (!jwt) {
+  const storedToken = authValues["cursorAuth/accessToken"] ?? null;
+  if (!storedToken) {
     log("No accessToken found in database");
     return null;
   }
 
-  log(`Found JWT token (${jwt.length} chars)`);
-  const payload = JSON.parse(Buffer.from(jwt.split(".")[1]!, "base64").toString());
-  const userId: string = payload.sub.split("|")[1];
+  let jwt: string;
+  try {
+    jwt = await resolveCursorAccessToken(storedToken);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    log(`Could not decode access token: ${msg}`);
+    return null;
+  }
+
+  const storage = storedToken.startsWith(CURSOR_SAFE_STORAGE_PREFIX) ? "safe-storage" : "plaintext";
+  log(`Found access token (${jwt.length} chars, ${storage})`);
+
+  let userId: string;
+  try {
+    userId = userIdFromJwt(jwt);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    log(`Could not parse access token: ${msg}`);
+    return null;
+  }
   log(`Parsed userId: ${userId}`);
 
   const email = authValues["cursorAuth/cachedEmail"] ?? null;
